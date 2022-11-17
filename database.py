@@ -1,9 +1,11 @@
 #!/usr/bin/python
 import psycopg2
 
+
 class Database:
     def __init__(self):
-        self.db = self.connect()
+        self.conn = self.connect()
+        self.cur = self.conn.cursor()
 
     def connect(self):
         conn = None
@@ -14,7 +16,7 @@ class Database:
                 database="bibliotheque",
                 user="admin",
                 password="admin",
-                port=5433)
+                port=5432)
 
             cur = conn.cursor()
             print('PostgreSQL database version:')
@@ -31,8 +33,7 @@ class Database:
                 print('Database connection closed.')
 
     def close_connection(self):
-        self.cur.close()
         self.db.close()
 
-    def test():
+    def test(self):
         print('test')
