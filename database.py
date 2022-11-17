@@ -1,28 +1,26 @@
 #!/usr/bin/python
 import psycopg2
+from config import config
 
 
 class Database:
     def __init__(self):
         self.conn = self.connect()
-        self.cur = self.conn.cursor()
+        # self.cur = self.conn.cursor()
 
     def connect(self):
         conn = None
         try:
+            params = config()
+
             print('Connecting to the PostgreSQL database...')
-            conn = psycopg2.connect(
-                host="localhost",
-                database="bibliotheque",
-                user="admin",
-                password="admin",
-                port=5432)
+            conn = psycopg2.connect(**params)
 
             cur = conn.cursor()
             print('PostgreSQL database version:')
-
             db_version = cur.fetchone()
             print(db_version)
+            print(cur.statusmessage)
             cur.close()
             return conn
         except (Exception, psycopg2.DatabaseError) as error:
@@ -37,3 +35,8 @@ class Database:
 
     def test(self):
         print('test')
+
+
+if __name__ == '__main__':
+    db = Database()
+    db.connect()
