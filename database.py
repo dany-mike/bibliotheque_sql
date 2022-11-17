@@ -42,9 +42,6 @@ class Database:
 
     def test(self):
         print('test')
-
-    def creer_membre(self):
-        print('creer membre')
     
     def creer_membre(self, nom: str, date_de_naissance: tuple[int, int, int]):
         try:
