@@ -4,10 +4,6 @@ from database import Database
 
 db = Database()
 
-# db.test()
-
-# db.cursor()
-
 st.set_page_config(
     layout="wide",
 )
