@@ -1,5 +1,8 @@
 import streamlit as st
 import datetime
+from database import Database
+
+db = Database()
 
 st.set_page_config(
     layout="wide",
@@ -11,15 +14,15 @@ a.title("Création de compte")
 
 with st.form("formulaire_compte"):
     today = datetime.date.today()
-    st.write()
 
     nom = st.text_input('Nom')
-    st.write('Your name is', nom)
-    st.write("Date de naissance")
+
     d = st.date_input(
         "Date de naissance",
         datetime.date(int(str(today).split('-')[0]), int(str(today).split('-')[1]), int(str(today).split('-')[2])))
 
     submitted = st.form_submit_button("Submit")
     if submitted:
-        st.write("Nom: ", nom, "Date de naissance", d)
+        print(nom)
+        date_tuple = (int(str(d).split('-')[0]), int(str(d).split('-')[1]), int(str(d).split('-')[2]))
+        db.creer_compte(nom, date_tuple)

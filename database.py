@@ -1,7 +1,6 @@
 #!/usr/bin/python
 import psycopg2
 from config import config
-import datetime
 
 
 class Database:
@@ -40,15 +39,16 @@ class Database:
     def close_connection(self):
         self.db.close()
 
-    def test(self):
-        print('test')
-    
-    def creer_membre(self, nom: str, date_de_naissance: tuple[int, int, int]):
+    def creer_compte(self, nom: str, date_de_naissance: tuple[int, int, int]):
         try:
+            date_de_naissance = [int(m) for m in date_de_naissance]
+            print(date_de_naissance)
             self.cur.execute("INSERT INTO personne (nom, limite, date_naissance, isBlacklisted) VALUES (%s, %s, %s, FALSE)",
-                             (nom, 5, datetime(date_de_naissance)))
-            
+                             (nom, 5, date_de_naissance
+                              ))
+            print('LA!')
             personne_id = self.cur.fetchone()[0]
+            print(personne_id)
 
             self.cur.execute("INSERT INTO role (role_name, personne_id) VALUES (%s, %s)",
                              ("membre", personne_id))
@@ -56,6 +56,9 @@ class Database:
         except (Exception, psycopg2.DatabaseError) as error:
             print(error)
             self.conn.rollback()
+
+    def test(self):
+        print('test')
 
 
 if __name__ == '__main__':
