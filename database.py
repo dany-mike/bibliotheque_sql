@@ -5,6 +5,7 @@ from utils import get_date
 import streamlit as st
 import pandas as pd
 
+
 class Database:
     def __init__(self):
         self.conn = self.connect()
@@ -43,7 +44,7 @@ class Database:
 
     def creer_compte_membre(self, nom: str, date_de_naissance: tuple[int, int, int]):
         try:
-           self.register(nom, date_de_naissance, "membre")
+            self.register(nom, date_de_naissance, "membre")
         except (Exception, psycopg2.DatabaseError) as error:
             print(error)
             self.conn.rollback()
@@ -55,16 +56,16 @@ class Database:
             print(error)
             self.conn.rollback()
 
-    def register(self, nom, date_de_naissance ,role):
+    def register(self, nom, date_de_naissance, role):
         self.cur.execute("INSERT INTO personne (nom, limite, date_naissance, isBlacklisted) VALUES (%s, %s, %s, FALSE)",
-                             (nom, 5, get_date(date_de_naissance)
-                              ))
+                         (nom, 5, get_date(date_de_naissance)
+                          ))
         self.cur.execute("SELECT * FROM personne WHERE nom = %s", (nom,))
 
         personne_id = self.cur.fetchone()[0]
 
         self.cur.execute("INSERT INTO role (role_name, personne_id) VALUES (%s, %s)",
-                            (role, personne_id))
+                         (role, personne_id))
         self.conn.commit()
 
         st.experimental_set_query_params(
@@ -79,7 +80,9 @@ class Database:
         )
 
     def renderHomePage(self, personne_id):
-        self.cur.execute("SELECT * FROM personne WHERE id = %s", (personne_id,))
+        # TODO: GET role and display it
+        self.cur.execute(
+            "SELECT * FROM personne WHERE id = %s", (personne_id,))
         personne = self.cur.fetchone()
         st.text("User info")
         st.write(pd.DataFrame({
@@ -89,20 +92,20 @@ class Database:
             'date de naissance': [personne[3]],
             'Blacklisté ?': [personne[4]]
         }))
-    
+
     def renderAddBookPage(self, personne_id):
-        self.cur.execute("SELECT * FROM personne WHERE id = %s", (personne_id,))
+        self.cur.execute(
+            "SELECT * FROM personne WHERE id = %s", (personne_id,))
         personne = self.cur.fetchone()
         with st.form("formulaire_ajout_livre"):
             isbn = st.text_input('ISBN')
             title = st.text_input('Titre')
             quantity = st.number_input('Quantité')
             auteur = st.text_input('Auteur')
-            
+
             submitted = st.form_submit_button("Submit")
             if submitted:
                 self.addBook(isbn, title, quantity, auteur)
-
 
 
 if __name__ == '__main__':
