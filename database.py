@@ -61,9 +61,8 @@ class Database:
         self.cur.execute("INSERT INTO personne (nom, limite, date_naissance, isBlacklisted) VALUES (%s, %s, %s, FALSE)",
                          (nom, 5, get_date(date_de_naissance)
                           ))
-        self.cur.execute("SELECT * FROM personne WHERE nom = %s", (nom,))
-
-        personne_id = self.cur.fetchone()[0]
+        p = Personne(0, self)
+        personne_id = p.getPersonneIdByName(nom)
 
         self.cur.execute("INSERT INTO role (role_name, personne_id) VALUES (%s, %s)",
                          (role, personne_id))
@@ -74,14 +73,13 @@ class Database:
         )
 
     def login(self, nom):
-        self.cur.execute("SELECT * FROM personne WHERE nom = %s", (nom,))
-        personne_id = self.cur.fetchone()[0]
+        p = Personne(0, self)
+        personne_id = p.getPersonneIdByName(nom)
         st.experimental_set_query_params(
             personne_id=personne_id
         )
 
     def renderUser(self, personne_id):
-        # TODO: GET role and display it
         p = Personne(personne_id, self)
         personne = p.getCurrentUser()
         role = p.getUserRole()
@@ -96,19 +94,20 @@ class Database:
         }))
 
     def renderAddBookPage(self, personne_id):
-        self.cur.execute(
-            "SELECT * FROM personne WHERE id = %s", (personne_id,))
-        personne = self.cur.fetchone()
-        with st.form("formulaire_ajout_livre"):
-            isbn = st.text_input('ISBN')
-            title = st.text_input('Titre')
-            quantity = st.number_input('Quantité', min_value=1, step=1)
-            auteur = st.text_input('Auteur')
+        p = Personne(personne_id, self)
+        role = p.getUserRole()
+        if role == 'admin':
+            with st.form("formulaire_ajout_livre"):
+                isbn = st.text_input('ISBN')
+                title = st.text_input('Titre')
+                quantity = st.number_input('Quantité', min_value=1, step=1)
+                auteur = st.text_input('Auteur')
 
-            submitted = st.form_submit_button("Submit")
-            if submitted:
-                self.addBook(isbn, title, quantity, auteur)
-
+                submitted = st.form_submit_button("Submit")
+                if submitted:
+                    self.addBook(isbn, title, quantity, auteur)
+        else:
+            st.text('Seul les admins peuvent ajouter un livre')
 
 if __name__ == '__main__':
     db = Database()

@@ -12,3 +12,8 @@ class Personne:
         self.db.cur.execute(
             "SELECT * FROM role WHERE personne_id = %s", (self.id,))
         return self.db.cur.fetchone()[0]
+    
+    def getPersonneIdByName(self, nom):
+        self.db.cur.execute("SELECT * FROM personne WHERE nom = %s", (nom,))
+        return self.db.cur.fetchone()[0]
+
