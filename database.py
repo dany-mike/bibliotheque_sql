@@ -79,18 +79,25 @@ class Database:
             personne_id=personne_id
         )
 
-    def renderHomePage(self, personne_id):
+    def renderUser(self, personne_id):
         # TODO: GET role and display it
         self.cur.execute(
             "SELECT * FROM personne WHERE id = %s", (personne_id,))
         personne = self.cur.fetchone()
-        st.text("User info")
+
+        self.cur.execute(
+            "SELECT * FROM role WHERE personne_id = %s", (personne_id,))
+    
+        role = self.cur.fetchone()[0]
+
+        st.text("Information de l'utilisateur")
         st.write(pd.DataFrame({
             'ID': [personne[0]],
             'Nom': [personne[1]],
             'Limite emprunt': [personne[2]],
             'date de naissance': [personne[3]],
-            'Blacklisté ?': [personne[4]]
+            'Blacklisté ?': [personne[4]],
+            'Role': [role]
         }))
 
     def renderAddBookPage(self, personne_id):
