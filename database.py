@@ -2,6 +2,12 @@
 import psycopg2
 from config import config
 from utils import get_date
+import streamlit as st
+# from streamlit_extras.switch_page_button import switch_page
+
+# want_to_contribute = st.button("I want to contribute!")
+# if want_to_contribute:
+#     switch_page("Contribute")
 
 
 class Database:
@@ -65,6 +71,17 @@ class Database:
         self.cur.execute("INSERT INTO role (role_name, personne_id) VALUES (%s, %s)",
                             (role, personne_id))
         self.conn.commit()
+
+        st.experimental_set_query_params(
+            personne_id=personne_id
+        )
+
+    def login(self, nom):
+        self.cur.execute("SELECT * FROM personne WHERE nom = %s", (nom,))
+        personne_id = self.cur.fetchone()[0]
+        st.experimental_set_query_params(
+            personne_id=personne_id
+        )
 
 if __name__ == '__main__':
     db = Database()

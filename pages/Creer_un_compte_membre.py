@@ -12,7 +12,7 @@ a, b = st.columns([1, 4])
 
 a.title("Création d'un compte membre")
 
-with st.form("formulaire_compte"):
+with st.form("formulaire_compte_membre"):
     today = datetime.date.today()
 
     nom = st.text_input('Nom')
