@@ -10,7 +10,7 @@ st.set_page_config(
 
 a, b = st.columns([1, 4])
 
-a.title("Création de compte")
+a.title("Création d'un compte admin")
 
 with st.form("formulaire_compte"):
     today = datetime.date.today()
@@ -24,4 +24,4 @@ with st.form("formulaire_compte"):
     submitted = st.form_submit_button("Submit")
     if submitted:
         date_tuple = (int(str(d).split('-')[0]), int(str(d).split('-')[1]), int(str(d).split('-')[2]))
-        db.creer_compte(nom, date_tuple)
+        db.creer_compte_admin(nom, date_tuple)
