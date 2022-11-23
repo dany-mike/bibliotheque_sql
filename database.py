@@ -93,6 +93,15 @@ class Database:
             'Role': [role]
         }))
 
+    def addBook(self, isbn, title, quantity, auteur):
+        try:
+            print('TODO create category')
+            # self.cur.execute("INSERT INTO livre (isbn, titre, quantite, auteur) VALUES (%s, %s, %s, %s)",
+            #              (isbn, title, quantity, auteur))
+        except (Exception, psycopg2.DatabaseError) as error:
+            print(error)
+            self.conn.rollback()
+
     def renderAddBookPage(self, personne_id):
         p = Personne(personne_id, self)
         role = p.getUserRole()
