@@ -3,12 +3,7 @@ import psycopg2
 from config import config
 from utils import get_date
 import streamlit as st
-# from streamlit_extras.switch_page_button import switch_page
-
-# want_to_contribute = st.button("I want to contribute!")
-# if want_to_contribute:
-#     switch_page("Contribute")
-
+import pandas as pd
 
 class Database:
     def __init__(self):
@@ -82,6 +77,18 @@ class Database:
         st.experimental_set_query_params(
             personne_id=personne_id
         )
+
+    def renderHomePage(self, personne_id):
+        self.cur.execute("SELECT * FROM personne WHERE id = %s", (personne_id,))
+        personne = self.cur.fetchone()
+        st.text("User info")
+        st.write(pd.DataFrame({
+            'ID': [personne[0]],
+            'Nom': [personne[1]],
+            'Limite emprunt': [personne[2]],
+            'date de naissance': [personne[3]],
+            'Blacklisté ?': [personne[4]]
+        }))
 
 if __name__ == '__main__':
     db = Database()
