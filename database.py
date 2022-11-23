@@ -89,6 +89,21 @@ class Database:
             'date de naissance': [personne[3]],
             'Blacklisté ?': [personne[4]]
         }))
+    
+    def renderAddBookPage(self, personne_id):
+        self.cur.execute("SELECT * FROM personne WHERE id = %s", (personne_id,))
+        personne = self.cur.fetchone()
+        with st.form("formulaire_ajout_livre"):
+            isbn = st.text_input('ISBN')
+            title = st.text_input('Titre')
+            quantity = st.number_input('Quantité')
+            auteur = st.text_input('Auteur')
+            
+            submitted = st.form_submit_button("Submit")
+            if submitted:
+                self.addBook(isbn, title, quantity, auteur)
+
+
 
 if __name__ == '__main__':
     db = Database()
