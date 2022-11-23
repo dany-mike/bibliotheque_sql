@@ -1,6 +1,7 @@
 import streamlit as st
 
 from database import Database
+from book import Book
 
 db = Database()
 
@@ -12,8 +13,10 @@ a, b = st.columns([1, 4])
 
 a.title("Liste des livres")
 
-if len(st.experimental_get_query_params()) > 0: 
-    personne_id = int(st.experimental_get_query_params()["personne_id"][0])
-    db.renderAddBookPage(personne_id)
+book = Book(db)
+books = book.getBooks()
+print(books)
+if len(books) > 0:
+    book.renderBooks(books)
 else :
-    st.text('Vous devez être connecté pour ajouter un livre')
+    st.text("Il n'y a pas de livres dans la librairie")
