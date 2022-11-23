@@ -23,6 +23,5 @@ with st.form("formulaire_compte"):
 
     submitted = st.form_submit_button("Submit")
     if submitted:
-        print(nom)
         date_tuple = (int(str(d).split('-')[0]), int(str(d).split('-')[1]), int(str(d).split('-')[2]))
         db.creer_compte(nom, date_tuple)
