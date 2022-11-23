@@ -9,38 +9,41 @@ class Book:
     def __init__(self, db):
         self.db = db
 
-    def getBooks(self):
+    def getUnavailableBooks(self):
         self.db.cur.execute(
-            "SELECT * FROM livre;")
+            "SELECT * FROM livre WHERE quantite <= 0;")
         return self.db.cur.fetchall()
 
-    def renderBooks(self, books):
-        availableBooks = []
-        unavailableBooks = []
-        for book in books:
-            if book[2] > 0:
-                availableBooks.append({
-                    'ISBN': book[0],
-                    'Titre': book[1],
-                    'Quantite': book[2],
-                    'Auteur': book[3],
-                    'Date de publication': book[4],
-                })
-            else:
-                unavailableBooks.append({'ISBN': book[0],
-                                        'Titre': book[1],
-                                         'Quantite': book[2],
-                                         'Auteur': book[3],
-                                         'Date de publication': book[4]})
+    def getAvailableBooks(self):
+        self.db.cur.execute(
+            "SELECT * FROM livre WHERE quantite > 0;")
+        return self.db.cur.fetchall()
+
+    def formatBooks(self, items):
+        formattedList = []
+        for item in items:
+            formattedList.append({
+                'ISBN': item[0],
+                'Titre': item[1],
+                'Quantite': item[2],
+                'Auteur': item[3],
+                'Date de publication': item[4],
+            })
+        return formattedList
+
+    def renderAvailableBooks(self):
+        availableBooks = self.getAvailableBooks()
         if len(availableBooks) > 0:
             st.subheader("Liste des livres disponibles")
-            st.write(pd.DataFrame(availableBooks))
+            st.write(pd.DataFrame(self.formatBooks(availableBooks)))
         else:
             st.subheader("Il n'y a plus de livres disponibles")
-        
+
+    def renderUnavailableBooks(self):
+        unavailableBooks = self.getUnavailableBooks()
         if len(unavailableBooks) > 0:
             st.subheader('Liste des livres non disponibles')
-            st.write(pd.DataFrame(unavailableBooks))
+            st.write(pd.DataFrame(self.formatBooks(unavailableBooks)))
 
     def renderAddBookForm(self, personne_id):
         p = Personne(personne_id, self.db)
@@ -62,6 +65,19 @@ class Book:
                                  quantity, auteur, option)
         else:
             st.text('Seul les admins peuvent ajouter un livre')
+
+    def renderBorrowBookForm(self, personne_id, books):
+        today = datetime.date.today()
+        option = st.selectbox('Liste des livres', ({
+            'ISBN': "1",
+        }, {
+            'ISBN': "2",
+        }))
+        submitted = st.form_submit_button("Submit")
+        if submitted:
+            print('borrow book')
+            # self.addBook(isbn, title, date_publication,
+            #              quantity, auteur, option)
 
     def addBook(self, isbn, title, date_publication, quantity, auteur, categorie_name):
         try:

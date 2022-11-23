@@ -14,9 +14,8 @@ a, b = st.columns([1, 4])
 a.title("Liste des livres")
 
 book = Book(db)
-books = book.getBooks()
-print(books)
-if len(books) > 0:
-    book.renderBooks(books)
-else :
+if len(book.getUnavailableBooks()) > 0 or len(book.getAvailableBooks()) > 0:
+    book.renderAvailableBooks()
+    book.renderUnavailableBooks()
+else:
     st.text("Il n'y a pas de livres dans la librairie")
