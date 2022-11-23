@@ -6,6 +6,8 @@ import streamlit as st
 import pandas as pd
 from personne import Personne
 from book import Book
+
+
 class Database:
     def __init__(self):
         self.conn = self.connect()
@@ -82,7 +84,7 @@ class Database:
         p = Personne(personne_id, self)
         personne = p.getCurrentUser()
         role = p.getUserRole()
-        st.text("Information de l'utilisateur")
+        st.subheader("Information de l'utilisateur")
         st.write(pd.DataFrame({
             'ID': [personne[0]],
             'Nom': [personne[1]],
@@ -91,6 +93,7 @@ class Database:
             'Blacklisté ?': [personne[4]],
             'Role': [role]
         }))
+
 
 if __name__ == '__main__':
     db = Database()

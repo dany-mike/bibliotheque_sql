@@ -33,13 +33,13 @@ class Book:
                                          'Auteur': book[3],
                                          'Date de publication': book[4]})
         if len(availableBooks) > 0:
-            st.text("Liste des livres disponibles")
+            st.subheader("Liste des livres disponibles")
             st.write(pd.DataFrame(availableBooks))
         else:
-            st.text("Il n'y a plus de livres disponibles")
+            st.subheader("Il n'y a plus de livres disponibles")
         
         if len(unavailableBooks) > 0:
-            st.text('Liste des livres non disponibles')
+            st.subheader('Liste des livres non disponibles')
             st.write(pd.DataFrame(unavailableBooks))
 
     def renderAddBookForm(self, personne_id):
