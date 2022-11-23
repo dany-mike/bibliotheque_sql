@@ -5,7 +5,7 @@ from utils import get_date
 import streamlit as st
 import pandas as pd
 from personne import Personne
-
+import datetime
 
 class Database:
     def __init__(self):
@@ -93,28 +93,35 @@ class Database:
             'Role': [role]
         }))
 
-    def addBook(self, isbn, title, quantity, auteur):
+    def addBook(self, isbn, title, date_publication, quantity, auteur, categorie_name):
         try:
-            print('TODO create category')
-            # self.cur.execute("INSERT INTO livre (isbn, titre, quantite, auteur) VALUES (%s, %s, %s, %s)",
-            #              (isbn, title, quantity, auteur))
+            self.cur.execute("INSERT INTO livre (isbn, titre, quantite, auteur, date_publication) VALUES (%s, %s, %s, %s, %s)",
+                         (isbn, title, quantity, auteur, date_publication))
+            self.createCategory(categorie_name, isbn)
+            self.conn.commit()
         except (Exception, psycopg2.DatabaseError) as error:
             print(error)
             self.conn.rollback()
+    
+    def createCategory(self, categorie_name, livre_isbn):
+        self.cur.execute("INSERT INTO categorie (categorie_name, livre_isbn) VALUES (%s, %s)",
+                         (categorie_name, livre_isbn))
 
     def renderAddBookPage(self, personne_id):
         p = Personne(personne_id, self)
         role = p.getUserRole()
         if role == 'admin':
             with st.form("formulaire_ajout_livre"):
+                today = datetime.date.today()
                 isbn = st.text_input('ISBN')
                 title = st.text_input('Titre')
+                date_publication = st.date_input("Date de publication", datetime.date(int(str(today).split('-')[0]), int(str(today).split('-')[1]), int(str(today).split('-')[2])))
                 quantity = st.number_input('Quantité', min_value=1, step=1)
                 auteur = st.text_input('Auteur')
-
+                option = st.selectbox('Catégorie', ('Fantastique', 'Policier', 'Biographie', 'Roman comtemporain', 'Philosophie', 'Roman historique'))
                 submitted = st.form_submit_button("Submit")
                 if submitted:
-                    self.addBook(isbn, title, quantity, auteur)
+                    self.addBook(isbn, title, date_publication, quantity, auteur, option)
         else:
             st.text('Seul les admins peuvent ajouter un livre')
 
