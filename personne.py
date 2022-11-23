@@ -17,3 +17,5 @@ class Personne:
         self.db.cur.execute("SELECT * FROM personne WHERE nom = %s", (nom,))
         return self.db.cur.fetchone()[0]
 
+    def updateUserLimite(self, updated_limite, personne_id):
+        self.db.cur.execute("UPDATE personne SET limite = %s WHERE id = %s;", (updated_limite, personne_id))

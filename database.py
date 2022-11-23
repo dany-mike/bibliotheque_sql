@@ -88,7 +88,7 @@ class Database:
         st.write(pd.DataFrame({
             'ID': [personne[0]],
             'Nom': [personne[1]],
-            'Limite emprunt': [personne[2]],
+            "Capacité d'emprunt": [personne[2]],
             'date de naissance': [personne[3]],
             'Blacklisté ?': [personne[4]],
             'Role': [role]
