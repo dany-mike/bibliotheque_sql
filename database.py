@@ -4,6 +4,7 @@ from config import config
 from utils import get_date
 import streamlit as st
 import pandas as pd
+from personne import Personne
 
 
 class Database:
@@ -81,15 +82,9 @@ class Database:
 
     def renderUser(self, personne_id):
         # TODO: GET role and display it
-        self.cur.execute(
-            "SELECT * FROM personne WHERE id = %s", (personne_id,))
-        personne = self.cur.fetchone()
-
-        self.cur.execute(
-            "SELECT * FROM role WHERE personne_id = %s", (personne_id,))
-    
-        role = self.cur.fetchone()[0]
-
+        p = Personne(personne_id, self)
+        personne = p.getCurrentUser()
+        role = p.getUserRole()
         st.text("Information de l'utilisateur")
         st.write(pd.DataFrame({
             'ID': [personne[0]],
@@ -107,7 +102,7 @@ class Database:
         with st.form("formulaire_ajout_livre"):
             isbn = st.text_input('ISBN')
             title = st.text_input('Titre')
-            quantity = st.number_input('Quantité')
+            quantity = st.number_input('Quantité', min_value=1, step=1)
             auteur = st.text_input('Auteur')
 
             submitted = st.form_submit_button("Submit")
