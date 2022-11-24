@@ -39,7 +39,18 @@ class Book:
                 'Date de publication': item[4],
             })
         return formattedList
-
+    
+    def formatBorrows(self, items):
+        formattedList = []
+        for item in items:
+            formattedList.append({
+                'ISBN du livre': item[1],
+                'Titre du livre': item[6],
+                'Auteur du livre': item[8],
+                "Date de l'emprunt": item[3],
+                "Date de rendu maximum": get_next_month_date(item[3])
+            })
+        return formattedList
     def renderAvailableBooks(self):
         availableBooks = self.getAvailableBooks()
         if len(availableBooks) > 0:
@@ -100,6 +111,15 @@ class Book:
         except (Exception, psycopg2.DatabaseError) as error:
             print(error)
             self.db.conn.rollback()
+    
+    def renderUnreturnedBooks(self):
+        self.db.cur.execute("SELECT * FROM emprunt LEFT JOIN livre ON emprunt.livre_isbn = livre.isbn WHERE date_rendu IS NULL;")
+        return self.db.cur.fetchall()
+
+
+    def renderReturnedBooks(self):
+        self.db.cur.execute("SELECT * FROM emprunt LEFT JOIN livre ON emprunt.livre_isbn = livre.isbn WHERE date_rendu IS NOT NULL;")
+        return self.db.cur.fetchall()
 
     def getISBNBorrowLabel(self, bookLabel):
         return bookLabel.split()[-1]
