@@ -25,6 +25,16 @@ class Book:
             "SELECT * FROM livre WHERE isbn = %s;", (isbn,))
         return self.db.cur.fetchone()
 
+    def getUnreturnedBooks(self):
+        self.db.cur.execute(
+            "SELECT * FROM emprunt LEFT JOIN livre ON emprunt.livre_isbn = livre.isbn LEFT JOIN personne ON emprunt.personne_id = personne.id WHERE date_rendu IS NULL;")
+        return self.db.cur.fetchall()
+
+    def getReturnedBooks(self):
+        self.db.cur.execute(
+            "SELECT * FROM emprunt LEFT JOIN livre ON emprunt.livre_isbn = livre.isbn LEFT JOIN personne ON emprunt.personne_id = personne.id WHERE date_rendu IS NOT NULL;")
+        return self.db.cur.fetchall()
+    
     def updateBookQty(self, updated_qty, isbn):
         self.db.cur.execute(
             "UPDATE livre SET quantite = %s WHERE isbn = %s;", (updated_qty, isbn))
@@ -144,16 +154,6 @@ class Book:
         except (Exception, psycopg2.DatabaseError) as error:
             print(error)
             self.db.conn.rollback()
-
-    def getUnreturnedBooks(self):
-        self.db.cur.execute(
-            "SELECT * FROM emprunt LEFT JOIN livre ON emprunt.livre_isbn = livre.isbn WHERE date_rendu IS NULL;")
-        return self.db.cur.fetchall()
-
-    def getReturnedBooks(self):
-        self.db.cur.execute(
-            "SELECT * FROM emprunt LEFT JOIN livre ON emprunt.livre_isbn = livre.isbn WHERE date_rendu IS NOT NULL;")
-        return self.db.cur.fetchall()
 
     def getLabelId(self, bookLabel):
         return bookLabel.split()[-1]

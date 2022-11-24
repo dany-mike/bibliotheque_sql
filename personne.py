@@ -1,7 +1,12 @@
+# from book import Book
 class Personne:
     def __init__(self, personne_id, db):
         self.id = personne_id
         self.db = db
+        self.isBlacklisted()
+
+    # def isBlacklisted(self):
+    #     book = Book(self.db)
 
     def getCurrentUser(self):
         self.db.cur.execute(
