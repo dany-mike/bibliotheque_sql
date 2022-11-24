@@ -1,10 +1,18 @@
+from utils import get_next_month_date
+import datetime
+
 class Personne:
     def __init__(self, personne_id, db):
         self.id = personne_id
         self.db = db
 
-    def isBlacklisted(self):
-        print('isBlacklisted')
+    def isBlacklisted(self, unreturnedBooks):
+        for book in unreturnedBooks:
+            date = book[3]
+            date_rendu_prevu = get_next_month_date(date)
+            today = datetime.date.today()
+            if date_rendu_prevu < today:
+                return True
 
     def getCurrentUser(self):
         self.db.cur.execute(
