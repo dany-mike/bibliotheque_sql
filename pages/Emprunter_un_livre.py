@@ -20,7 +20,8 @@ if len(st.experimental_get_query_params()) > 0:
     unreturnedBooks = book.getUnreturnedBooks()
     p = Personne(personne_id, db)
     if p.isBlacklisted(unreturnedBooks):
-        print("User is blacklisted")
+        p.blacklistUser()
+
     book.renderBorrowBookForm(personne_id, book.getAvailableBooks())
 else :
     st.text('Vous devez être connecté pour ajouter un livre')

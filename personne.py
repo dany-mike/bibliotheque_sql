@@ -1,5 +1,6 @@
 from utils import get_next_month_date
 import datetime
+import psycopg2
 
 class Personne:
     def __init__(self, personne_id, db):
@@ -18,6 +19,24 @@ class Personne:
         self.db.cur.execute(
             "SELECT * FROM personne WHERE id = %s", (self.id,))
         return self.db.cur.fetchone()
+    
+    def blacklistUser(self):
+        try:
+            self.db.cur.execute(
+                "UPDATE personne SET isblacklisted = true WHERE id = %s;", (self.id, ))
+            self.db.conn.commit()
+        except (Exception, psycopg2.DatabaseError) as error:
+            print(error)
+            self.db.conn.rollback()
+
+    def unblacklistUser(self):
+        try:
+            self.db.cur.execute(
+                "UPDATE personne SET isblacklisted = false WHERE id = %s;", (self.id, ))
+            self.db.conn.commit()
+        except (Exception, psycopg2.DatabaseError) as error:
+            print(error)
+            self.db.conn.rollback()
 
     def getUserRole(self):
         self.db.cur.execute(
