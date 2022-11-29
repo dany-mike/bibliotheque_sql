@@ -142,27 +142,33 @@ class Book:
         p = Personne(personne_id, self.db)
         role = p.getUserRole()
         if role == 'admin':
-            with st.form("formulaire_ajout_livre"):
-                today = datetime.date.today()
-                isbn = st.text_input('ISBN')
-                title = st.text_input('Titre')
-                date_publication = st.date_input("Date de publication", datetime.date(int(str(
-                    today).split('-')[0]), int(str(today).split('-')[1]), int(str(today).split('-')[2])))
-                quantity = st.number_input('Quantité', min_value=0, step=1)
-                auteur = st.text_input('Auteur')
-                options = st.multiselect(
-                    'Catégories du livre',
-                    ['Fantastique', 'Policier', 'Biographie',
-                     'Roman comtemporain', 'Philosophie', 'Roman historique'],
-                    [])
+            booksToAdd = st.number_input('Number of books to add', min_value=1, step=1)
+            if booksToAdd > 0:
+                with st.form("formulaire_ajout_livres"):
+                    today = datetime.date.today()
+                    
+                    for item in range(booksToAdd):
+                        bookNumber = item + 1
+                        st.text('Book ' + str(bookNumber))
+                        isbn = st.text_input('ISBN ' + str(bookNumber))
+                        title = st.text_input('Titre ' + str(bookNumber))
+                        date_publication = st.date_input("Date de publication " + str(bookNumber), datetime.date(int(str(
+                            today).split('-')[0]), int(str(today).split('-')[1]), int(str(today).split('-')[2])))
+                        quantity = st.number_input('Quantité ' + str(bookNumber), min_value=0, step=1)
+                        auteur = st.text_input('Auteur ' + str(bookNumber))
+                        options = st.multiselect(
+                            'Catégories du livre' + str(bookNumber),
+                            ['Fantastique', 'Policier', 'Biographie',
+                            'Roman comtemporain', 'Philosophie', 'Roman historique'],
+                            [])
 
-                st.write('You selected:', options)
-                submitted = st.form_submit_button("Submit")
-                if submitted:
-                    self.addBook(isbn, title, date_publication,
-                                 quantity, auteur, options)
-        else:
-            st.text('Seul les admins peuvent ajouter un livre')
+                    submitted = st.form_submit_button("Submit")
+
+                    if submitted:
+                        self.addBook(isbn, title, date_publication,
+                                        quantity, auteur, options)
+            else:
+                st.text('Seul les admins peuvent ajouter un livre')
 
     def renderBorrowBookForm(self, personne_id, books):
         with st.form("formulaire_emprunt"):
