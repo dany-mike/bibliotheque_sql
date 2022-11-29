@@ -34,7 +34,7 @@ class Book:
         self.db.cur.execute(
             "SELECT * FROM emprunt LEFT JOIN livre ON emprunt.livre_isbn = livre.isbn LEFT JOIN personne ON emprunt.personne_id = personne.id WHERE date_rendu IS NOT NULL;")
         return self.db.cur.fetchall()
-    
+
     def updateBookQty(self, updated_qty, isbn):
         self.db.cur.execute(
             "UPDATE livre SET quantite = %s WHERE isbn = %s;", (updated_qty, isbn))
@@ -81,7 +81,7 @@ class Book:
         if len(unavailableBooks) > 0:
             st.subheader('Liste des livres non disponibles')
             st.write(pd.DataFrame(self.formatBooks(unavailableBooks)))
-        
+
     def renderAddBookForm(self, personne_id):
         p = Personne(personne_id, self.db)
         role = p.getUserRole()
@@ -94,12 +94,19 @@ class Book:
                     today).split('-')[0]), int(str(today).split('-')[1]), int(str(today).split('-')[2])))
                 quantity = st.number_input('Quantité', min_value=0, step=1)
                 auteur = st.text_input('Auteur')
-                option = st.selectbox('Catégorie', ('Fantastique', 'Policier', 'Biographie',
-                                      'Roman comtemporain', 'Philosophie', 'Roman historique'))
+                # option = st.selectbox('Catégorie', ('Fantastique', 'Policier', 'Biographie',
+                #                       'Roman comtemporain', 'Philosophie', 'Roman historique'))
+                options = st.multiselect(
+                    'Catégories du livre',
+                    ['Fantastique', 'Policier', 'Biographie',
+                     'Roman comtemporain', 'Philosophie', 'Roman historique'],
+                    [])
+
+                st.write('You selected:', options)
                 submitted = st.form_submit_button("Submit")
                 if submitted:
                     self.addBook(isbn, title, date_publication,
-                                 quantity, auteur, option)
+                                 quantity, auteur, options)
         else:
             st.text('Seul les admins peuvent ajouter un livre')
 
@@ -165,19 +172,20 @@ class Book:
             borrowLabel.append(
                 "Titre: " + book["Titre"] + " ISBN: " + book["ISBN"])
         return borrowLabel
-    
+
     def renderUnreturnedLabel(self, books):
         unreturnedLabel = []
         for book in books:
             unreturnedLabel.append(
-              "Titre: " + book["Titre du livre"] + " ISBN: " + book["ISBN du livre"]  + " ID de l'emprunt: " + str(book["ID de l'emprunt"]))
+                "Titre: " + book["Titre du livre"] + " ISBN: " + book["ISBN du livre"] + " ID de l'emprunt: " + str(book["ID de l'emprunt"]))
         return unreturnedLabel
 
-    def addBook(self, isbn, title, date_publication, quantity, auteur, categorie_name):
+    def addBook(self, isbn, title, date_publication, quantity, auteur, categories):
         try:
             self.db.cur.execute("INSERT INTO livre (isbn, titre, quantite, auteur, date_publication) VALUES (%s, %s, %s, %s, %s)",
                                 (isbn, title, quantity, auteur, date_publication))
-            self.createCategory(categorie_name, isbn)
+            for category in categories:
+                self.createCategory(category, isbn)
             self.db.conn.commit()
         except (Exception, psycopg2.DatabaseError) as error:
             print(error)
