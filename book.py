@@ -34,6 +34,11 @@ class Book:
         self.db.cur.execute(
             "SELECT * FROM livre WHERE titre = %s;", (bookName,))
         return self.db.cur.fetchall()
+    
+    # def getBooksByBookYear(self, bookYear):
+    #     self.db.cur.execute(
+    #         "SELECT * FROM livre WHERE date_publication = %s;", (bookYear,))
+    #     return self.db.cur.fetchall()
 
     def getUnreturnedBooks(self):
         self.db.cur.execute(
@@ -113,12 +118,25 @@ class Book:
         if len(books) > 0:
             st.subheader('Liste des livres qui ont pour auteur ' + author)
             st.write(pd.DataFrame(self.formatBooks(books)))
+        else:
+            st.write("Il n'y a aucun livre qui a l'auteur " + author)
+
 
     def renderBooksByName(self, bookName):
         books = self.getBooksByName(bookName)
         if len(books) > 0:
             st.subheader('Liste des livres avec le nom ' + bookName)
             st.write(pd.DataFrame(self.formatBooks(books)))
+        else:
+            st.write("Il n'y a aucun livre avec le titre " + bookName)
+    
+    # def renderBooksByYear(self, bookYear):
+    #     books = self.getBooksByBookYear(bookYear)
+    #     if len(books) > 0:
+    #         st.subheader("Liste des livres avec l'année " + bookYear)
+    #         st.write(pd.DataFrame(self.formatBooks(books)))
+    #     else:
+    #         st.write("Il n'y a aucun qui a été publié en " + bookYear)
 
     def renderAddBookForm(self, personne_id):
         p = Personne(personne_id, self.db)
