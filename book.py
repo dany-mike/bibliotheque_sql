@@ -27,7 +27,7 @@ class Book:
 
     def getBooksByName(self, bookName):
         self.db.cur.execute(
-            "SELECT * FROM livre WHERE nom = %s;", (bookName,))
+            "SELECT * FROM livre WHERE titre = %s;", (bookName,))
         return self.db.cur.fetchall()
 
     def getUnreturnedBooks(self):
@@ -93,10 +93,16 @@ class Book:
             st.subheader('Liste des livres non disponibles')
             st.write(pd.DataFrame(self.formatBooks(unavailableBooks)))
 
-    def getSearchBarValue(self):
+    def renderSearchBar(self):
         bookName = st.text_input('Chercher un livre par nom: ', '')
         if st.button('Soumettre'):
             return bookName
+
+    def renderBooksByName(self, bookName):
+        books = self.getBooksByName(bookName)
+        if len(books) > 0:
+            st.subheader('Liste des livres avec le nom ' + bookName)
+            st.write(pd.DataFrame(self.formatBooks(books)))
 
     def renderAddBookForm(self, personne_id):
         p = Personne(personne_id, self.db)
