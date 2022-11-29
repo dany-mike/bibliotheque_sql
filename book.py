@@ -25,6 +25,11 @@ class Book:
             "SELECT * FROM livre WHERE isbn = %s;", (isbn,))
         return self.db.cur.fetchone()
 
+    def getBooksByAuthor(self, author):
+        self.db.cur.execute(
+            "SELECT * FROM livre WHERE auteur = %s;", (author,))
+        return self.db.cur.fetchall()
+
     def getBooksByName(self, bookName):
         self.db.cur.execute(
             "SELECT * FROM livre WHERE titre = %s;", (bookName,))
@@ -93,10 +98,21 @@ class Book:
             st.subheader('Liste des livres non disponibles')
             st.write(pd.DataFrame(self.formatBooks(unavailableBooks)))
 
-    def renderSearchBar(self):
+    def renderSearchBarName(self):
         bookName = st.text_input('Chercher un livre par nom: ', '')
-        if st.button('Soumettre'):
+        if st.button('Chercher par titre'):
             return bookName
+
+    def renderSearchBarAuthor(self):
+        authorName = st.text_input('Chercher un livre par auteur: ', '')
+        if st.button('Chercher par auteur'):
+            return authorName
+
+    def renderBooksByAuthor(self, author):
+        books = self.getBooksByAuthor(author)
+        if len(books) > 0:
+            st.subheader('Liste des livres qui ont pour auteur ' + author)
+            st.write(pd.DataFrame(self.formatBooks(books)))
 
     def renderBooksByName(self, bookName):
         books = self.getBooksByName(bookName)
