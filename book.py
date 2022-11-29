@@ -134,6 +134,7 @@ class Book:
             self.setBookReturnDate(date_rendu, emprunt_id)
             p.updateUserLimite(updated_limite, personne_id)
             self.updateBookQty(updated_book_qty, isbn)
+            p.unblacklistUser()
             self.db.conn.commit()
         except (Exception, psycopg2.DatabaseError) as error:
             print(error)

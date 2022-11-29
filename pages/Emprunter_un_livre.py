@@ -27,7 +27,7 @@ if len(st.experimental_get_query_params()) > 0:
     blacklisted_field = personne[4]
 
     if blacklisted_field:
-        st.text('You are blacklisted you are not allowed to borrow a book')
+        st.text('Vous êtes blacklisté vous ne pouvez pas emprunter de livres')
     else:
         book.renderBorrowBookForm(personne_id, book.getAvailableBooks())
 else :
