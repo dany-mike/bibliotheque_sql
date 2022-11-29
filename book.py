@@ -175,13 +175,13 @@ class Book:
                     submitted = st.form_submit_button("Submit")
 
                     if submitted:
-                        values = self.convertBookFormToManyInsert(isbnList, titleList, dateList, quantityList, auteurList, booksToAdd)
+                        values = self.getValuesToInsert(isbnList, titleList, dateList, quantityList, auteurList, booksToAdd)
                         # self.addBook(isbn, title, date_publication,
                         #                 quantity, auteur, options)
             else:
                 st.text('Seul les admins peuvent ajouter un livre')
 
-    def convertBookFormToManyInsert(self, isbnList, titleList, dateList, quantityList, auteurList, booksToAdd):
+    def getValuesToInsert(self, isbnList, titleList, dateList, quantityList, auteurList, booksToAdd):
         forms = []
         for i in range(booksToAdd): 
             forms.append([])
