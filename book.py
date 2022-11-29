@@ -146,29 +146,63 @@ class Book:
             if booksToAdd > 0:
                 with st.form("formulaire_ajout_livres"):
                     today = datetime.date.today()
-                    
+                    isbnList = []
+                    titleList = []
+                    dateList = []
+                    quantityList = []
+                    auteurList = []
+                    optionsList = []
                     for item in range(booksToAdd):
                         bookNumber = item + 1
                         st.text('Book ' + str(bookNumber))
                         isbn = st.text_input('ISBN ' + str(bookNumber))
+                        isbnList.append(isbn)
                         title = st.text_input('Titre ' + str(bookNumber))
+                        titleList.append(title)
                         date_publication = st.date_input("Date de publication " + str(bookNumber), datetime.date(int(str(
                             today).split('-')[0]), int(str(today).split('-')[1]), int(str(today).split('-')[2])))
+                        dateList.append(date_publication)
                         quantity = st.number_input('Quantité ' + str(bookNumber), min_value=0, step=1)
+                        quantityList.append(quantity)
                         auteur = st.text_input('Auteur ' + str(bookNumber))
+                        auteurList.append(auteur)
                         options = st.multiselect(
-                            'Catégories du livre' + str(bookNumber),
+                            'Catégories du livre ' + str(bookNumber),
                             ['Fantastique', 'Policier', 'Biographie',
                             'Roman comtemporain', 'Philosophie', 'Roman historique'],
                             [])
-
+                        optionsList.append(options)
                     submitted = st.form_submit_button("Submit")
 
                     if submitted:
-                        self.addBook(isbn, title, date_publication,
-                                        quantity, auteur, options)
+                        values = self.convertBookFormToManyInsert(isbnList, titleList, dateList, quantityList, auteurList, booksToAdd)
+                        # self.addBook(isbn, title, date_publication,
+                        #                 quantity, auteur, options)
             else:
                 st.text('Seul les admins peuvent ajouter un livre')
+
+    def convertBookFormToManyInsert(self, isbnList, titleList, dateList, quantityList, auteurList, booksToAdd):
+        forms = []
+        for i in range(booksToAdd): 
+            forms.append([])
+            forms[i].append(isbnList[i])
+            forms[i].append(titleList[i])
+            forms[i].append(quantityList[i])
+            forms[i].append(auteurList[i])
+            forms[i].append(dateList[i])
+        values = []
+        for element in forms:
+            values.append(self.getValuesBook(element[0], element[1], element[2], element[3], element[4]))
+        result = ""
+        for index, value in enumerate(values):
+            if index == len(values) - 1:
+                result+= str(value) + ';'
+            else:
+                result+= str(value) + ', '
+        return result
+
+    def getValuesBook(self, isbn, title, quantity, auteur, date):
+        return 'VALUES ({0}, {1}, {2}, {3}, {4})'.format(isbn, title, quantity, auteur, date)
 
     def renderBorrowBookForm(self, personne_id, books):
         with st.form("formulaire_emprunt"):
