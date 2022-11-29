@@ -25,6 +25,11 @@ class Book:
             "SELECT * FROM livre WHERE isbn = %s;", (isbn,))
         return self.db.cur.fetchone()
 
+    def getBooksByName(self, bookName):
+        self.db.cur.execute(
+            "SELECT * FROM livre WHERE nom = %s;", (bookName,))
+        return self.db.cur.fetchall()
+
     def getUnreturnedBooks(self):
         self.db.cur.execute(
             "SELECT * FROM emprunt LEFT JOIN livre ON emprunt.livre_isbn = livre.isbn LEFT JOIN personne ON emprunt.personne_id = personne.id WHERE date_rendu IS NULL;")
@@ -68,6 +73,12 @@ class Book:
             })
         return formattedList
 
+    def renderBooks(self, bookName):
+        books = self.getBooksByName(bookName)
+        if len(books) > 0:
+            st.subheader("Livres avec le nom %s", bookName)
+            st.write(pd.DataFrame(self.formatBooks(books)))
+
     def renderAvailableBooks(self):
         availableBooks = self.getAvailableBooks()
         if len(availableBooks) > 0:
@@ -82,6 +93,11 @@ class Book:
             st.subheader('Liste des livres non disponibles')
             st.write(pd.DataFrame(self.formatBooks(unavailableBooks)))
 
+    def getSearchBarValue(self):
+        bookName = st.text_input('Chercher un livre par nom: ', '')
+        if st.button('Soumettre'):
+            return bookName
+
     def renderAddBookForm(self, personne_id):
         p = Personne(personne_id, self.db)
         role = p.getUserRole()
@@ -94,8 +110,6 @@ class Book:
                     today).split('-')[0]), int(str(today).split('-')[1]), int(str(today).split('-')[2])))
                 quantity = st.number_input('Quantité', min_value=0, step=1)
                 auteur = st.text_input('Auteur')
-                # option = st.selectbox('Catégorie', ('Fantastique', 'Policier', 'Biographie',
-                #                       'Roman comtemporain', 'Philosophie', 'Roman historique'))
                 options = st.multiselect(
                     'Catégories du livre',
                     ['Fantastique', 'Policier', 'Biographie',
