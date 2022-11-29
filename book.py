@@ -176,6 +176,8 @@ class Book:
 
                     if submitted:
                         values = self.getValuesToInsert(isbnList, titleList, dateList, quantityList, auteurList, booksToAdd)
+                        print(values)
+                        self.addBooks(values)
                         # self.addBook(isbn, title, date_publication,
                         #                 quantity, auteur, options)
             else:
@@ -193,7 +195,7 @@ class Book:
         values = []
         for element in forms:
             values.append(self.getValuesBook(element[0], element[1], element[2], element[3], element[4]))
-        result = ""
+        result = "VALUES"
         for index, value in enumerate(values):
             if index == len(values) - 1:
                 result+= str(value) + ';'
@@ -202,7 +204,7 @@ class Book:
         return result
 
     def getValuesBook(self, isbn, title, quantity, auteur, date):
-        return 'VALUES ({0}, {1}, {2}, {3}, {4})'.format(isbn, title, quantity, auteur, date)
+        return '({0}, {1}, {2}, {3}, {4})'.format(isbn, title, quantity, auteur, date)
 
     def renderBorrowBookForm(self, personne_id, books):
         with st.form("formulaire_emprunt"):
@@ -280,6 +282,17 @@ class Book:
                                 (isbn, title, quantity, auteur, date_publication))
             for category in categories:
                 self.createCategory(category, isbn)
+            self.db.conn.commit()
+        except (Exception, psycopg2.DatabaseError) as error:
+            print(error)
+            self.db.conn.rollback()
+
+    def addBooks(self, values):
+        try:
+            # self.db.cur.execute("INSERT INTO livre (isbn, titre, quantite, auteur, date_publication) " + values)
+            # TODO: Handle category
+            # for category in categories:
+            #     self.createCategory(category, isbn)
             self.db.conn.commit()
         except (Exception, psycopg2.DatabaseError) as error:
             print(error)
