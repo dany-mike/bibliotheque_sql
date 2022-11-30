@@ -166,22 +166,42 @@ class Book:
                         quantityList.append(quantity)
                         auteur = st.text_input('Auteur ' + str(bookNumber))
                         auteurList.append(auteur)
-                        options = st.multiselect(
+                        categoryValues = st.multiselect(
                             'Catégories du livre ' + str(bookNumber),
                             ['Fantastique', 'Policier', 'Biographie',
                             'Roman comtemporain', 'Philosophie', 'Roman historique'],
                             [])
-                        optionsList.append(options)
+                        optionsList.append(categoryValues)
                     submitted = st.form_submit_button("Submit")
 
                     if submitted:
-                        values = self.getValuesToInsert(isbnList, titleList, dateList, quantityList, auteurList, booksToAdd)
-                        print(values)
-                        self.addBooks(values)
+                        bookValues = self.getValuesToInsert(isbnList, titleList, dateList, quantityList, auteurList, booksToAdd)
+                        categoryValues = self.getCategoriesToInsert(isbnList, optionsList, booksToAdd)
+                        # print(bookValues)
+                        self.addBooks(bookValues, categoryValues)
                         # self.addBook(isbn, title, date_publication,
                         #                 quantity, auteur, options)
             else:
                 st.text('Seul les admins peuvent ajouter un livre')
+
+    def getCategoriesToInsert(self, isbnList ,optionsList, booksToAdd):
+        forms = []
+        for i in range(booksToAdd): 
+            forms.append([])
+            forms[i].append(optionsList[i])
+            forms[i].append(isbnList[i])
+        categories = []
+        for element in forms:
+            categories.append(self.getValuesCategory(element[0], element[1]))
+        
+        result = "VALUES"
+  
+        for item in categories:
+            for element in item:
+                result+= str(element) + ','
+        l = len(result)
+        return result[:l-1] + ';'
+
 
     def getValuesToInsert(self, isbnList, titleList, dateList, quantityList, auteurList, booksToAdd):
         forms = []
@@ -203,8 +223,14 @@ class Book:
                 result+= str(value) + ', '
         return result
 
+    def getValuesCategory(self, categories, isbn):
+        elements = []
+        for c in categories:
+            elements.append("('{0}', '{1}')".format(c, isbn))
+        return elements
+
     def getValuesBook(self, isbn, title, quantity, auteur, date):
-        return '({0}, {1}, {2}, {3}, {4})'.format(isbn, title, quantity, auteur, date)
+        return "('{0}', '{1}', {2}, '{3}', '{4}')".format(isbn, title, quantity, auteur, date)
 
     def renderBorrowBookForm(self, personne_id, books):
         with st.form("formulaire_emprunt"):
@@ -287,12 +313,10 @@ class Book:
             print(error)
             self.db.conn.rollback()
 
-    def addBooks(self, values):
+    def addBooks(self, bookValues, categoryValues):
         try:
-            # self.db.cur.execute("INSERT INTO livre (isbn, titre, quantite, auteur, date_publication) " + values)
-            # TODO: Handle category
-            # for category in categories:
-            #     self.createCategory(category, isbn)
+            self.db.cur.execute("INSERT INTO livre (isbn, titre, quantite, auteur, date_publication) " + bookValues)
+            self.db.cur.execute("INSERT INTO categorie (categorie_name, livre_isbn) " + categoryValues)
             self.db.conn.commit()
         except (Exception, psycopg2.DatabaseError) as error:
             print(error)
