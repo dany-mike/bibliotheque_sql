@@ -12,33 +12,38 @@ class Book:
 
     def getUnavailableBooks(self):
         self.db.cur.execute(
-            "SELECT * FROM livre WHERE quantite <= 0;")
+            "SELECT * FROM livre LEFT JOIN categorie ON categorie.livre_isbn = livre.isbn WHERE quantite <= 0;")
         return self.db.cur.fetchall()
 
     def getAvailableBooks(self):
         self.db.cur.execute(
-            "SELECT * FROM livre WHERE quantite > 0;")
+            "SELECT * FROM livre LEFT JOIN categorie ON categorie.livre_isbn = livre.isbn WHERE quantite > 0;")
         return self.db.cur.fetchall()
 
     def getBookByISBN(self, isbn):
         self.db.cur.execute(
-            "SELECT * FROM livre WHERE isbn = %s;", (isbn,))
+            "SELECT * FROM livre LEFT JOIN categorie ON categorie.livre_isbn = livre.isbn WHERE isbn = %s;", (isbn,))
         return self.db.cur.fetchone()
 
     def getBooksByAuthor(self, author):
         self.db.cur.execute(
-            "SELECT * FROM livre WHERE auteur = %s;", (author,))
+            "SELECT * FROM livre LEFT JOIN categorie ON categorie.livre_isbn = livre.isbn WHERE auteur = %s;", (author,))
         return self.db.cur.fetchall()
 
     def getBooksByName(self, bookName):
         self.db.cur.execute(
-            "SELECT * FROM livre WHERE titre = %s;", (bookName,))
+            "SELECT * FROM livre LEFT JOIN categorie ON categorie.livre_isbn = livre.isbn WHERE titre = %s;", (bookName,))
         return self.db.cur.fetchall()
     
     # def getBooksByBookYear(self, bookYear):
     #     self.db.cur.execute(
     #         "SELECT * FROM livre WHERE date_publication = %s;", (bookYear,))
     #     return self.db.cur.fetchall()
+
+    def getBooksByCategory(self, categorieName):
+        self.db.cur.execute(
+            "SELECT * FROM livre LEFT JOIN categorie ON categorie.livre_isbn = livre.isbn WHERE categorie_name = %s;", (categorieName,))
+        return self.db.cur.fetchall()
 
     def getUnreturnedBooks(self):
         self.db.cur.execute(
@@ -67,6 +72,7 @@ class Book:
                 'Quantite': item[2],
                 'Auteur': item[3],
                 'Date de publication': item[4],
+                'Catégorie': item[5]
             })
         return formattedList
 
@@ -113,6 +119,11 @@ class Book:
         if st.button('Chercher par auteur'):
             return authorName
 
+    def renderSearchBarCategory(self):
+        categorieName = st.text_input('Chercher un livre par catégorie: ', '')
+        if st.button('Chercher par catégorie'):
+            return categorieName
+
     def renderBooksByAuthor(self, author):
         books = self.getBooksByAuthor(author)
         if len(books) > 0:
@@ -137,6 +148,14 @@ class Book:
     #         st.write(pd.DataFrame(self.formatBooks(books)))
     #     else:
     #         st.write("Il n'y a aucun qui a été publié en " + bookYear)
+
+    def renderBooksByCategory(self, category):
+        categories = self.getBooksByCategory(category)
+        if len(categories) > 0:
+            st.subheader("Liste des livres avec l'année " + category)
+            st.write(pd.DataFrame(self.formatBooks(categories)))
+        else:
+            st.write("Il n'y a pas de livre avec la catégorie " + category)
 
     def renderAddBookForm(self, personne_id):
         p = Personne(personne_id, self.db)

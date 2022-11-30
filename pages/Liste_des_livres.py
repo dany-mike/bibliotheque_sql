@@ -17,11 +17,14 @@ book = Book(db)
 if len(book.getUnavailableBooks()) > 0 or len(book.getAvailableBooks()) > 0:
     bookName = book.renderSearchBarName()
     authorName = book.renderSearchBarAuthor()
-    if bookName or authorName:
+    categorieName = book.renderSearchBarCategory()
+    if bookName or authorName or categorieName:
         if bookName:
             book.renderBooksByName(bookName)
         if authorName:
             book.renderBooksByAuthor(authorName)
+        if categorieName:
+            book.renderBooksByCategory(categorieName)
         if st.button('Annuler la recherche'):
             bookName = ''
             authorName = ''
