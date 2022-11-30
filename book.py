@@ -177,10 +177,7 @@ class Book:
                     if submitted:
                         bookValues = self.getValuesToInsert(isbnList, titleList, dateList, quantityList, auteurList, booksToAdd)
                         categoryValues = self.getCategoriesToInsert(isbnList, optionsList, booksToAdd)
-                        # print(bookValues)
-                        self.addBooks(bookValues, categoryValues)
-                        # self.addBook(isbn, title, date_publication,
-                        #                 quantity, auteur, options)
+                        self.addBooks(bookValues, categoryValues, booksToAdd)
             else:
                 st.text('Seul les admins peuvent ajouter un livre')
 
@@ -313,13 +310,16 @@ class Book:
             print(error)
             self.db.conn.rollback()
 
-    def addBooks(self, bookValues, categoryValues):
+    def addBooks(self, bookValues, categoryValues, booksToAdd):
         try:
             self.db.cur.execute("INSERT INTO livre (isbn, titre, quantite, auteur, date_publication) " + bookValues)
             self.db.cur.execute("INSERT INTO categorie (categorie_name, livre_isbn) " + categoryValues)
             self.db.conn.commit()
+            st.text(str(booksToAdd) + ' livres ont été ajouté avec succès !')
         except (Exception, psycopg2.DatabaseError) as error:
             print(error)
+            st.text("L'ajout de livre(s) a échoué")
+            st.text(error)
             self.db.conn.rollback()
 
     def createCategory(self, categorie_name, livre_isbn):
