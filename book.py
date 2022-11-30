@@ -182,13 +182,13 @@ class Book:
                 st.text('Seul les admins peuvent ajouter un livre')
 
     def getCategoriesToInsert(self, isbnList ,optionsList, booksToAdd):
-        forms = []
+        fields = []
         for i in range(booksToAdd): 
-            forms.append([])
-            forms[i].append(optionsList[i])
-            forms[i].append(isbnList[i])
+            fields.append([])
+            fields[i].append(optionsList[i])
+            fields[i].append(isbnList[i])
         categories = []
-        for element in forms:
+        for element in fields:
             categories.append(self.getValuesCategory(element[0], element[1]))
         
         result = "VALUES"
@@ -201,16 +201,16 @@ class Book:
 
 
     def getValuesToInsert(self, isbnList, titleList, dateList, quantityList, auteurList, booksToAdd):
-        forms = []
+        fields = []
         for i in range(booksToAdd): 
-            forms.append([])
-            forms[i].append(isbnList[i])
-            forms[i].append(titleList[i])
-            forms[i].append(quantityList[i])
-            forms[i].append(auteurList[i])
-            forms[i].append(dateList[i])
+            fields.append([])
+            fields[i].append(isbnList[i])
+            fields[i].append(titleList[i])
+            fields[i].append(quantityList[i])
+            fields[i].append(auteurList[i])
+            fields[i].append(dateList[i])
         values = []
-        for element in forms:
+        for element in fields:
             values.append(self.getValuesBook(element[0], element[1], element[2], element[3], element[4]))
         result = "VALUES"
         for index, value in enumerate(values):
@@ -219,6 +219,28 @@ class Book:
             else:
                 result+= str(value) + ', '
         return result
+
+    def getBorrowsToInsert(self, isbnList, personneId, booksToBorrow, today):
+        fields = []
+        for i in range(booksToBorrow):
+            print(isbnList)
+            fields.append([])
+            fields[i].append(isbnList[i])
+            fields[i].append(personneId)
+        values = []
+        for element in fields:
+            values.append(self.getValuesBorrow(element[0], element[1], today))
+        result = "VALUES"
+        for index, value in enumerate(values):
+            if index == len(values) - 1:
+                result+= str(value) + ';'
+            else:
+                result+= str(value) + ', '
+        print(result)
+        return result
+
+    def getValuesBorrow(self, isbn, personne_id, today):
+        return "('{0}', '{1}', '{2}')".format(isbn, personne_id, today)
 
     def getValuesCategory(self, categories, isbn):
         elements = []
@@ -230,14 +252,21 @@ class Book:
         return "('{0}', '{1}', {2}, '{3}', '{4}')".format(isbn, title, quantity, auteur, date)
 
     def renderBorrowBookForm(self, personne_id, books):
-        with st.form("formulaire_emprunt"):
-            today = datetime.date.today()
-            availableBooks = self.formatBooks(books)
-            bookLabel = st.selectbox('Liste des livres disponibles',
-                                     (self.renderBorrowLabel(availableBooks)))
-            submitted = st.form_submit_button("Submit")
-            if submitted:
-                self.borrowBook(bookLabel, personne_id, today)
+        booksToBorrow = st.number_input('Number of books to borrow', min_value=1, step=1)
+        if booksToBorrow > 0:
+            with st.form("formulaire_emprunt"):
+                today = datetime.date.today()
+                availableBooks = self.formatBooks(books)
+                isbnList = []
+                for index in range(0, booksToBorrow):
+                    bookLabel = st.selectbox('Liste des livres disponibles' + str(index + 1),
+                                        (self.renderBorrowLabel(availableBooks)))
+                    isbn = self.getLabelId(bookLabel)
+                    isbnList.append(isbn)
+                submitted = st.form_submit_button("Submit")
+                if submitted:
+                    values = self.getBorrowsToInsert(isbnList, personne_id, booksToBorrow, today)
+                    self.borrowBooks(values, personne_id, booksToBorrow, isbnList)
 
     def renderReturnBookForm(self, personne_id, books):
         with st.form("formulaire_de_retour"):
@@ -266,20 +295,25 @@ class Book:
             print(error)
             self.db.conn.rollback()
 
-    def borrowBook(self, bookLabel, personne_id, date_emprunt):
+    def borrowBooks(self, values, personne_id, booksToBorrow, isbnList):
         try:
             p = Personne(personne_id, self.db)
             personne = p.getCurrentUser()
-            isbn = self.getLabelId(bookLabel)
-            self.db.cur.execute("INSERT INTO emprunt (livre_isbn, personne_id, date_emprunt) VALUES (%s, %s, %s)",
-                                (isbn, personne_id, date_emprunt))
-            updated_limite = personne[2] - 1
-            updated_book_qty = self.getBookByISBN(isbn)[2] - 1
+            self.db.cur.execute("INSERT INTO emprunt (livre_isbn, personne_id, date_emprunt) " + values)
+            updated_limite = personne[2] - booksToBorrow
+            if not updated_limite > 0:
+                st.text("Vous dépassez la limite de livre que vous pouvez emprunter")
+                return
             p.updateUserLimite(updated_limite, personne_id)
-            self.updateBookQty(updated_book_qty, isbn)
+            for isbn in isbnList:
+                updated_book_qty = self.getBookByISBN(isbn)[2] - 1
+                self.updateBookQty(updated_book_qty, isbn)
             self.db.conn.commit()
+            st.text("Emprunt(s) fait avec succès !")
         except (Exception, psycopg2.DatabaseError) as error:
             print(error)
+            st.text("Il y a eu un echec lors de l'ajout des emprunts")
+            st.text(error)
             self.db.conn.rollback()
 
     def getLabelId(self, bookLabel):
