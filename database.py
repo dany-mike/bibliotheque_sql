@@ -83,7 +83,6 @@ class Database:
     def renderUser(self, personne_id):
         p = Personne(personne_id, self)
         personne = p.getCurrentUser()
-        role = p.getUserRole()
         st.subheader("Information de l'utilisateur")
         st.write(pd.DataFrame({
             'ID': [personne[0]],
@@ -91,7 +90,7 @@ class Database:
             "Capacité d'emprunt": [personne[2]],
             'date de naissance': [personne[3]],
             'Blacklisté ?': [personne[4]],
-            'Role': [role]
+            'Role': [personne[5]]
         }))
 
 

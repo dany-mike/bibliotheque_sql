@@ -173,8 +173,8 @@ class Book:
 
     def renderAddBookForm(self, personne_id):
         p = Personne(personne_id, self.db)
-        role = p.getUserRole()
-        if role == 'admin':
+        personne = p.getCurrentUser()
+        if personne[5] == 'admin':
             booksToAdd = st.number_input(
                 'Number of books to add', min_value=1, step=1)
             if booksToAdd > 0:
@@ -215,8 +215,8 @@ class Book:
                         categoryValues = self.getCategoriesToInsert(
                             isbnList, optionsList, booksToAdd)
                         self.addBooks(bookValues, categoryValues, booksToAdd)
-            else:
-                st.text('Seul les admins peuvent ajouter un livre')
+        else:
+            st.text('Seul les admins peuvent ajouter un livre')
 
     def getCategoriesToInsert(self, isbnList, optionsList, booksToAdd):
         fields = []
