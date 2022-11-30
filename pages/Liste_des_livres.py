@@ -18,13 +18,16 @@ if len(book.getUnavailableBooks()) > 0 or len(book.getAvailableBooks()) > 0:
     bookName = book.renderSearchBarName()
     authorName = book.renderSearchBarAuthor()
     categorieName = book.renderSearchBarCategory()
-    if bookName or authorName or categorieName:
+    date = book.renderCalendarInput()
+    if bookName or authorName or categorieName or date:
         if bookName:
             book.renderBooksByName(bookName)
         if authorName:
             book.renderBooksByAuthor(authorName)
         if categorieName:
             book.renderBooksByCategory(categorieName)
+        if date:
+            book.renderBooksByDate(date)
         if st.button('Annuler la recherche'):
             bookName = ''
             authorName = ''

@@ -34,11 +34,11 @@ class Book:
         self.db.cur.execute(
             "SELECT * FROM livre LEFT JOIN categorie ON categorie.livre_isbn = livre.isbn WHERE titre = %s;", (bookName,))
         return self.db.cur.fetchall()
-    
-    # def getBooksByBookYear(self, bookYear):
-    #     self.db.cur.execute(
-    #         "SELECT * FROM livre WHERE date_publication = %s;", (bookYear,))
-    #     return self.db.cur.fetchall()
+
+    def getBooksByDate(self, date):
+        self.db.cur.execute(
+            "SELECT * FROM livre LEFT JOIN categorie ON categorie.livre_isbn = livre.isbn  WHERE date_publication = %s;", (date,))
+        return self.db.cur.fetchall()
 
     def getBooksByCategory(self, categorieName):
         self.db.cur.execute(
@@ -124,6 +124,13 @@ class Book:
         if st.button('Chercher par catégorie'):
             return categorieName
 
+    def renderCalendarInput(self):
+        date = st.date_input(
+            "Chercher un livre par date",
+            datetime.date(2012, 11, 23))
+        if st.button('Chercher par date'):
+            return date
+
     def renderBooksByAuthor(self, author):
         books = self.getBooksByAuthor(author)
         if len(books) > 0:
@@ -132,7 +139,6 @@ class Book:
         else:
             st.write("Il n'y a aucun livre qui a l'auteur " + author)
 
-
     def renderBooksByName(self, bookName):
         books = self.getBooksByName(bookName)
         if len(books) > 0:
@@ -140,7 +146,15 @@ class Book:
             st.write(pd.DataFrame(self.formatBooks(books)))
         else:
             st.write("Il n'y a aucun livre avec le titre " + bookName)
-    
+
+    def renderBooksByDate(self, date):
+        books = self.getBooksByDate(date)
+        if len(books) > 0:
+            st.subheader('Liste des livres avec la date ' + str(date))
+            st.write(pd.DataFrame(self.formatBooks(books)))
+        else:
+            st.write("Il n'y a aucun livre avec la date " + str(date))
+
     # def renderBooksByYear(self, bookYear):
     #     books = self.getBooksByBookYear(bookYear)
     #     if len(books) > 0:
@@ -161,7 +175,8 @@ class Book:
         p = Personne(personne_id, self.db)
         role = p.getUserRole()
         if role == 'admin':
-            booksToAdd = st.number_input('Number of books to add', min_value=1, step=1)
+            booksToAdd = st.number_input(
+                'Number of books to add', min_value=1, step=1)
             if booksToAdd > 0:
                 with st.form("formulaire_ajout_livres"):
                     today = datetime.date.today()
@@ -181,47 +196,49 @@ class Book:
                         date_publication = st.date_input("Date de publication " + str(bookNumber), datetime.date(int(str(
                             today).split('-')[0]), int(str(today).split('-')[1]), int(str(today).split('-')[2])))
                         dateList.append(date_publication)
-                        quantity = st.number_input('Quantité ' + str(bookNumber), min_value=0, step=1)
+                        quantity = st.number_input(
+                            'Quantité ' + str(bookNumber), min_value=0, step=1)
                         quantityList.append(quantity)
                         auteur = st.text_input('Auteur ' + str(bookNumber))
                         auteurList.append(auteur)
                         categoryValues = st.multiselect(
                             'Catégories du livre ' + str(bookNumber),
                             ['Fantastique', 'Policier', 'Biographie',
-                            'Roman comtemporain', 'Philosophie', 'Roman historique'],
+                             'Roman comtemporain', 'Philosophie', 'Roman historique'],
                             [])
                         optionsList.append(categoryValues)
                     submitted = st.form_submit_button("Submit")
 
                     if submitted:
-                        bookValues = self.getValuesToInsert(isbnList, titleList, dateList, quantityList, auteurList, booksToAdd)
-                        categoryValues = self.getCategoriesToInsert(isbnList, optionsList, booksToAdd)
+                        bookValues = self.getValuesToInsert(
+                            isbnList, titleList, dateList, quantityList, auteurList, booksToAdd)
+                        categoryValues = self.getCategoriesToInsert(
+                            isbnList, optionsList, booksToAdd)
                         self.addBooks(bookValues, categoryValues, booksToAdd)
             else:
                 st.text('Seul les admins peuvent ajouter un livre')
 
-    def getCategoriesToInsert(self, isbnList ,optionsList, booksToAdd):
+    def getCategoriesToInsert(self, isbnList, optionsList, booksToAdd):
         fields = []
-        for i in range(booksToAdd): 
+        for i in range(booksToAdd):
             fields.append([])
             fields[i].append(optionsList[i])
             fields[i].append(isbnList[i])
         categories = []
         for element in fields:
             categories.append(self.getValuesCategory(element[0], element[1]))
-        
+
         result = "VALUES"
-  
+
         for item in categories:
             for element in item:
-                result+= str(element) + ','
+                result += str(element) + ','
         l = len(result)
         return result[:l-1] + ';'
 
-
     def getValuesToInsert(self, isbnList, titleList, dateList, quantityList, auteurList, booksToAdd):
         fields = []
-        for i in range(booksToAdd): 
+        for i in range(booksToAdd):
             fields.append([])
             fields[i].append(isbnList[i])
             fields[i].append(titleList[i])
@@ -230,13 +247,14 @@ class Book:
             fields[i].append(dateList[i])
         values = []
         for element in fields:
-            values.append(self.getValuesBook(element[0], element[1], element[2], element[3], element[4]))
+            values.append(self.getValuesBook(
+                element[0], element[1], element[2], element[3], element[4]))
         result = "VALUES"
         for index, value in enumerate(values):
             if index == len(values) - 1:
-                result+= str(value) + ';'
+                result += str(value) + ';'
             else:
-                result+= str(value) + ', '
+                result += str(value) + ', '
         return result
 
     def getBorrowsToInsert(self, isbnList, personneId, booksToBorrow, today):
@@ -252,9 +270,9 @@ class Book:
         result = "VALUES"
         for index, value in enumerate(values):
             if index == len(values) - 1:
-                result+= str(value) + ';'
+                result += str(value) + ';'
             else:
-                result+= str(value) + ', '
+                result += str(value) + ', '
         print(result)
         return result
 
@@ -271,7 +289,8 @@ class Book:
         return "('{0}', '{1}', {2}, '{3}', '{4}')".format(isbn, title, quantity, auteur, date)
 
     def renderBorrowBookForm(self, personne_id, books):
-        booksToBorrow = st.number_input('Number of books to borrow', min_value=1, step=1)
+        booksToBorrow = st.number_input(
+            'Number of books to borrow', min_value=1, step=1)
         if booksToBorrow > 0:
             with st.form("formulaire_emprunt"):
                 today = datetime.date.today()
@@ -279,13 +298,15 @@ class Book:
                 isbnList = []
                 for index in range(0, booksToBorrow):
                     bookLabel = st.selectbox('Liste des livres disponibles' + str(index + 1),
-                                        (self.renderBorrowLabel(availableBooks)))
+                                             (self.renderBorrowLabel(availableBooks)))
                     isbn = self.getLabelId(bookLabel)
                     isbnList.append(isbn)
                 submitted = st.form_submit_button("Submit")
                 if submitted:
-                    values = self.getBorrowsToInsert(isbnList, personne_id, booksToBorrow, today)
-                    self.borrowBooks(values, personne_id, booksToBorrow, isbnList)
+                    values = self.getBorrowsToInsert(
+                        isbnList, personne_id, booksToBorrow, today)
+                    self.borrowBooks(values, personne_id,
+                                     booksToBorrow, isbnList)
 
     def renderReturnBookForm(self, personne_id, books):
         with st.form("formulaire_de_retour"):
@@ -318,7 +339,8 @@ class Book:
         try:
             p = Personne(personne_id, self.db)
             personne = p.getCurrentUser()
-            self.db.cur.execute("INSERT INTO emprunt (livre_isbn, personne_id, date_emprunt) " + values)
+            self.db.cur.execute(
+                "INSERT INTO emprunt (livre_isbn, personne_id, date_emprunt) " + values)
             updated_limite = personne[2] - booksToBorrow
             if not updated_limite > 0:
                 st.text("Vous dépassez la limite de livre que vous pouvez emprunter")
@@ -365,8 +387,10 @@ class Book:
 
     def addBooks(self, bookValues, categoryValues, booksToAdd):
         try:
-            self.db.cur.execute("INSERT INTO livre (isbn, titre, quantite, auteur, date_publication) " + bookValues)
-            self.db.cur.execute("INSERT INTO categorie (categorie_name, livre_isbn) " + categoryValues)
+            self.db.cur.execute(
+                "INSERT INTO livre (isbn, titre, quantite, auteur, date_publication) " + bookValues)
+            self.db.cur.execute(
+                "INSERT INTO categorie (categorie_name, livre_isbn) " + categoryValues)
             self.db.conn.commit()
             st.text(str(booksToAdd) + ' livres ont été ajouté avec succès !')
         except (Exception, psycopg2.DatabaseError) as error:
