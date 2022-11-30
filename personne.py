@@ -49,4 +49,16 @@ class Personne:
 
     def updateUserLimite(self, updated_limite, personne_id):
         self.db.cur.execute(
-            "UPDATE personne SET limite = %s WHERE id = %s;", (updated_limite, personne_id))
+                "UPDATE personne SET limite = %s WHERE id = %s;", (updated_limite, personne_id))
+
+    def deleteAccount(self, personne_id):
+        try:
+            self.db.cur.execute(
+                "DELETE FROM role WHERE personne_id = %s;", (personne_id, ))
+            self.db.cur.execute(
+                "DELETE FROM personne WHERE id = %s;", (personne_id, ))
+            self.db.conn.commit()
+        except (Exception, psycopg2.DatabaseError) as error:
+            print(error)
+            self.db.conn.rollback()
+     
