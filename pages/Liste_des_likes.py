@@ -19,4 +19,4 @@ personne_id = int(st.experimental_get_query_params()["personne_id"][0])
 if len(book.getLikedBooks(personne_id)) > 0:
     book.renderLikedBooks(personne_id)
 else:
-    st.text("Il n'y a pas de livres dans la librairie")
+    st.text("Vous n'avez liké aucun livre")

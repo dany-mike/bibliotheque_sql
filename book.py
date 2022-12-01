@@ -12,12 +12,12 @@ class Book:
 
     def getUnavailableBooks(self):
         self.db.cur.execute(
-            "SELECT * FROM livre WHERE quantite <= 0;")
+            "SELECT * FROM livre LEFT JOIN categorie ON categorie.livre_isbn = livre.isbn WHERE quantite <= 0;")
         return self.db.cur.fetchall()
 
     def getAvailableBooks(self):
         self.db.cur.execute(
-            "SELECT * FROM livre WHERE quantite > 0;")
+            "SELECT * FROM livre LEFT JOIN categorie ON categorie.livre_isbn = livre.isbn WHERE quantite > 0;")
         return self.db.cur.fetchall()
 
     def getBookByISBN(self, isbn):
@@ -27,22 +27,22 @@ class Book:
 
     def getBooksByAuthor(self, author):
         self.db.cur.execute(
-            "SELECT * FROM livre WHERE auteur = %s;", (author,))
+            "SELECT * FROM livre LEFT JOIN categorie ON categorie.livre_isbn = livre.isbn WHERE auteur = %s;", (author,))
         return self.db.cur.fetchall()
 
     def getBooksByName(self, bookName):
         self.db.cur.execute(
-            "SELECT * FROM livre WHERE titre = %s;", (bookName,))
+            "SELECT * FROM livre LEFT JOIN categorie ON categorie.livre_isbn = livre.isbn WHERE titre = %s;", (bookName,))
         return self.db.cur.fetchall()
 
     def getBooksByDate(self, date):
         self.db.cur.execute(
-            "SELECT * FROM livre WHERE date_publication = %s;", (date,))
+            "SELECT * FROM livre LEFT JOIN categorie ON categorie.livre_isbn = livre.isbn WHERE date_publication = %s;", (date,))
         return self.db.cur.fetchall()
 
     def getBooksByCategory(self, categorieName):
         self.db.cur.execute(
-            "SELECT * FROM livre WHERE categorie_name = %s;", (categorieName,))
+            "SELECT * FROM livre LEFT JOIN categorie ON categorie.livre_isbn = livre.isbn WHERE categorie_name = %s;", (categorieName,))
         return self.db.cur.fetchall()
 
     def getUnreturnedBooks(self, personne_id):
@@ -62,7 +62,7 @@ class Book:
     
     def getLikedBooks(self, personne_id):
         self.db.cur.execute(
-            "SELECT * from likes LEFT JOIN livre ON livre.isbn = likes.livre_isbn WHERE personne_id = %s;", (personne_id, ))
+            "SELECT * from likes LEFT JOIN livre ON livre.isbn = likes.livre_isbn LEFT JOIN categorie ON categorie.livre_isbn = livre.isbn WHERE personne_id = %s;", (personne_id, ))
         return self.db.cur.fetchall()
 
     def updateBookQty(self, updated_qty, isbn):
@@ -87,6 +87,7 @@ class Book:
                 'Quantite': item[2],
                 'Auteur': item[3],
                 'Date de publication': item[4],
+                'Categorie': item[5]
             })
         return formattedList
 
@@ -344,7 +345,6 @@ class Book:
             emprunt_id = int(self.getLabelId(bookLabel))
             book = self.getBookByIDEmprunt(emprunt_id)
             updated_limite = personne[2] + 1
-            print(updated_limite)
             updated_book_qty = self.getBookByISBN(book[1])[2] + 1
             self.setBookReturnDate(date_rendu, emprunt_id)
             p.updateUserLimite(updated_limite, personne_id)
