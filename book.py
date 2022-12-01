@@ -62,7 +62,7 @@ class Book:
     
     def getLikedBooks(self, personne_id):
         self.db.cur.execute(
-            "SELECT * from likes LEFT JOIN livre ON livre.isbn = likes.livre_isbn WHERE personne_id = %s;", (personne_id, ))
+            "SELECT * from likes LEFT JOIN livre ON livre.isbn = likes.livre_isbn LEFT JOIN categorie ON categorie.livre_isbn = likes.livre_isbn WHERE personne_id = %s;", (personne_id, ))
         return self.db.cur.fetchall()
 
     def updateBookQty(self, updated_qty, isbn):
@@ -83,6 +83,18 @@ class Book:
                 'Auteur': item[3],
                 'Date de publication': item[4],
                 'Catégorie': item[5]
+            })
+        return formattedList
+
+    def formatLikedBooks(self, items):
+        formattedList = []
+        for item in items:
+            formattedList.append({
+                'ISBN': item[2],
+                'Titre': item[3],
+                'auteur': item[5],
+                'date_publication': item[6],
+                'categorie': item[7]
             })
         return formattedList
 
@@ -118,6 +130,10 @@ class Book:
         if len(unavailableBooks) > 0:
             st.subheader('Liste des livres non disponibles')
             st.write(pd.DataFrame(self.formatBooks(unavailableBooks)))
+    
+    def renderLikedBooks(self, personne_id):
+        likedBooks = self.getLikedBooks(personne_id)
+        st.write(pd.DataFrame(self.formatLikedBooks(likedBooks)))
 
     def renderSearchBarName(self):
         bookName = st.text_input('Chercher un livre par nom: ', '')
@@ -418,7 +434,6 @@ class Book:
             livre_isbn = selectedBook.split(' ')[1]
             submitted = st.form_submit_button("Submit")
             if submitted:
-                st.text('Submitted')
                 self.likeBook(personne_id, livre_isbn)
     
     def likeBook(self, personne_id, livre_isbn):
