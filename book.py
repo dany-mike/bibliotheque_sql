@@ -29,6 +29,12 @@ class Book:
         self.db.cur.execute(
             "SELECT * FROM livre LEFT JOIN categorie ON categorie.livre_isbn = livre.isbn WHERE auteur = %s;", (author,))
         return self.db.cur.fetchall()
+    
+    def getBooksByCategory(self, categorie_name):
+        self.db.cur.execute(
+            "SELECT * FROM categorie LEFT JOIN livre ON livre.isbn = categorie.livre_isbn WHERE categorie_name = %s", (categorie_name, )
+        )
+        return self.db.cur.fetchall()
 
     def getBooksByName(self, bookName):
         self.db.cur.execute(
@@ -38,11 +44,6 @@ class Book:
     def getBooksByDate(self, date):
         self.db.cur.execute(
             "SELECT * FROM livre LEFT JOIN categorie ON categorie.livre_isbn = livre.isbn WHERE date_publication = %s;", (date,))
-        return self.db.cur.fetchall()
-
-    def getBooksByCategory(self, categorieName):
-        self.db.cur.execute(
-            "SELECT * FROM livre LEFT JOIN categorie ON categorie.livre_isbn = livre.isbn WHERE categorie_name = %s;", (categorieName,))
         return self.db.cur.fetchall()
 
     def getUnreturnedBooks(self, personne_id):
@@ -88,6 +89,19 @@ class Book:
                 'Auteur': item[3],
                 'Date de publication': item[4],
                 'Categorie': item[5]
+            })
+        return formattedList
+    
+    def formatCategories(self, items):
+        formattedList = []
+        for item in items:
+            formattedList.append({
+                'ISBN': item[1],
+                'Titre': item[3],
+                'Quantite': item[4],
+                'Auteur': item[5],
+                'Date de publication': item[6],
+                'Categorie': item[0]
             })
         return formattedList
 
@@ -188,8 +202,8 @@ class Book:
     def renderBooksByCategory(self, category):
         categories = self.getBooksByCategory(category)
         if len(categories) > 0:
-            st.subheader("Liste des livres avec l'année " + category)
-            st.write(pd.DataFrame(self.formatBooks(categories)))
+            st.subheader("Liste des livres avec la catégorie " + category)
+            st.write(pd.DataFrame(self.formatCategories(categories)))
         else:
             st.write("Il n'y a pas de livre avec la catégorie " + category)
 
