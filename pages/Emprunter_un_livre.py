@@ -17,7 +17,7 @@ a.title("Emprunter un livre")
 if len(st.experimental_get_query_params()) > 0: 
     personne_id = int(st.experimental_get_query_params()["personne_id"][0])
     book = Book(db)
-    unreturnedBooks = book.getUnreturnedBooks()
+    unreturnedBooks = book.getUnreturnedBooks(personne_id)
     p = Personne(personne_id, db)
     if p.isBlacklisted(unreturnedBooks):
         p.blacklistUser()

@@ -12,47 +12,47 @@ class Book:
 
     def getUnavailableBooks(self):
         self.db.cur.execute(
-            "SELECT * FROM livre LEFT JOIN categorie ON categorie.livre_isbn = livre.isbn WHERE quantite <= 0;")
+            "SELECT * FROM livre  WHERE quantite <= 0;")
         return self.db.cur.fetchall()
 
     def getAvailableBooks(self):
         self.db.cur.execute(
-            "SELECT * FROM livre LEFT JOIN categorie ON categorie.livre_isbn = livre.isbn WHERE quantite > 0;")
+            "SELECT * FROM livre  WHERE quantite > 0;")
         return self.db.cur.fetchall()
 
     def getBookByISBN(self, isbn):
         self.db.cur.execute(
-            "SELECT * FROM livre LEFT JOIN categorie ON categorie.livre_isbn = livre.isbn WHERE isbn = %s;", (isbn,))
+            "SELECT * FROM livre  WHERE isbn = %s;", (isbn,))
         return self.db.cur.fetchone()
 
     def getBooksByAuthor(self, author):
         self.db.cur.execute(
-            "SELECT * FROM livre LEFT JOIN categorie ON categorie.livre_isbn = livre.isbn WHERE auteur = %s;", (author,))
+            "SELECT * FROM livre  WHERE auteur = %s;", (author,))
         return self.db.cur.fetchall()
 
     def getBooksByName(self, bookName):
         self.db.cur.execute(
-            "SELECT * FROM livre LEFT JOIN categorie ON categorie.livre_isbn = livre.isbn WHERE titre = %s;", (bookName,))
+            "SELECT * FROM livre  WHERE titre = %s;", (bookName,))
         return self.db.cur.fetchall()
 
     def getBooksByDate(self, date):
         self.db.cur.execute(
-            "SELECT * FROM livre LEFT JOIN categorie ON categorie.livre_isbn = livre.isbn  WHERE date_publication = %s;", (date,))
+            "SELECT * FROM livre   WHERE date_publication = %s;", (date,))
         return self.db.cur.fetchall()
 
     def getBooksByCategory(self, categorieName):
         self.db.cur.execute(
-            "SELECT * FROM livre LEFT JOIN categorie ON categorie.livre_isbn = livre.isbn WHERE categorie_name = %s;", (categorieName,))
+            "SELECT * FROM livre  WHERE categorie_name = %s;", (categorieName,))
         return self.db.cur.fetchall()
 
-    def getUnreturnedBooks(self):
+    def getUnreturnedBooks(self, personne_id):
         self.db.cur.execute(
-            "SELECT * FROM emprunt LEFT JOIN livre ON emprunt.livre_isbn = livre.isbn LEFT JOIN personne ON emprunt.personne_id = personne.id WHERE date_rendu IS NULL;")
+            "SELECT * FROM emprunt LEFT JOIN livre ON emprunt.livre_isbn = livre.isbn LEFT JOIN personne ON emprunt.personne_id = personne.id WHERE date_rendu IS NULL AND personne_id = %s;", (personne_id, ))
         return self.db.cur.fetchall()
 
-    def getReturnedBooks(self):
+    def getReturnedBooks(self, personne_id):
         self.db.cur.execute(
-            "SELECT * FROM emprunt LEFT JOIN livre ON emprunt.livre_isbn = livre.isbn LEFT JOIN personne ON emprunt.personne_id = personne.id WHERE date_rendu IS NOT NULL;")
+            "SELECT * FROM emprunt LEFT JOIN livre ON emprunt.livre_isbn = livre.isbn LEFT JOIN personne ON emprunt.personne_id = personne.id WHERE date_rendu IS NOT NULL AND personne_id = %s;", (personne_id, ))
         return self.db.cur.fetchall()
     
     def getUnlikedBooks(self, personne_id):
@@ -62,7 +62,7 @@ class Book:
     
     def getLikedBooks(self, personne_id):
         self.db.cur.execute(
-            "SELECT * from likes LEFT JOIN livre ON livre.isbn = likes.livre_isbn LEFT JOIN categorie ON categorie.livre_isbn = likes.livre_isbn WHERE personne_id = %s;", (personne_id, ))
+            "SELECT * from likes LEFT JOIN livre ON livre.isbn = likes.livre_isbn WHERE personne_id = %s;", (personne_id, ))
         return self.db.cur.fetchall()
 
     def updateBookQty(self, updated_qty, isbn):
@@ -82,7 +82,6 @@ class Book:
                 'Quantite': item[2],
                 'Auteur': item[3],
                 'Date de publication': item[4],
-                'Catégorie': item[5]
             })
         return formattedList
 
@@ -94,7 +93,6 @@ class Book:
                 'Titre': item[3],
                 'auteur': item[5],
                 'date_publication': item[6],
-                'categorie': item[7]
             })
         return formattedList
 
