@@ -54,8 +54,10 @@ class Personne:
             self.db.cur.execute(
                 "DELETE FROM personne WHERE id = %s;", (personne_id, ))
             self.db.conn.commit()
+            st.text('Le compte a été supprimé avec succès')
         except (Exception, psycopg2.DatabaseError) as error:
             print(error)
+            st.text('La suppression du compte a échoué')
             self.db.conn.rollback()
 
         

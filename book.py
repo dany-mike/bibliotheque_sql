@@ -411,7 +411,10 @@ class Book:
             for category in categories:
                 self.createCategory(category, isbn)
             self.db.conn.commit()
+            st.text("Livre ajouté avec succès")
         except (Exception, psycopg2.DatabaseError) as error:
+            st.text("Erreur lors de l'ajout du livre")
+            st.text(error)
             print(error)
             self.db.conn.rollback()
 
