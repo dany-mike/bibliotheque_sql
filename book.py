@@ -54,6 +54,16 @@ class Book:
         self.db.cur.execute(
             "SELECT * FROM emprunt LEFT JOIN livre ON emprunt.livre_isbn = livre.isbn LEFT JOIN personne ON emprunt.personne_id = personne.id WHERE date_rendu IS NOT NULL;")
         return self.db.cur.fetchall()
+    
+    def getUnlikedBooks(self, personne_id):
+        self.db.cur.execute(
+            "SELECT * from livre LEFT JOIN likes ON livre.isbn = likes.livre_isbn WHERE personne_id != %s OR personne_id IS NULL;", (personne_id, ))
+        return self.db.cur.fetchall()
+    
+    def getLikedBooks(self, personne_id):
+        self.db.cur.execute(
+            "SELECT * from likes LEFT JOIN livre ON livre.isbn = likes.livre_isbn WHERE personne_id = %s;", (personne_id, ))
+        return self.db.cur.fetchall()
 
     def updateBookQty(self, updated_qty, isbn):
         self.db.cur.execute(
@@ -154,14 +164,6 @@ class Book:
             st.write(pd.DataFrame(self.formatBooks(books)))
         else:
             st.write("Il n'y a aucun livre avec la date " + str(date))
-
-    # def renderBooksByYear(self, bookYear):
-    #     books = self.getBooksByBookYear(bookYear)
-    #     if len(books) > 0:
-    #         st.subheader("Liste des livres avec l'année " + bookYear)
-    #         st.write(pd.DataFrame(self.formatBooks(books)))
-    #     else:
-    #         st.write("Il n'y a aucun qui a été publié en " + bookYear)
 
     def renderBooksByCategory(self, category):
         categories = self.getBooksByCategory(category)
@@ -402,3 +404,13 @@ class Book:
     def createCategory(self, categorie_name, livre_isbn):
         self.db.cur.execute("INSERT INTO categorie (categorie_name, livre_isbn) VALUES (%s, %s)",
                             (categorie_name, livre_isbn))
+
+    def renderLikeForm(self, personne_id):
+        with st.form("formulaire_de_like"):
+            unlikedBooks = self.getUnlikedBooks(personne_id)
+            print(unlikedBooks)
+            # bookLabel = st.selectbox('Liste des livres non rendus',
+            #                          (self.renderUnreturnedLabel(unreturnedBooks)))
+            # submitted = st.form_submit_button("Submit")
+            # if submitted:
+            #     self.returnBook(bookLabel, personne_id, today)
