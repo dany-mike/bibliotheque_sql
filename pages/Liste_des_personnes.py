@@ -24,4 +24,4 @@ if len(st.experimental_get_query_params()) > 0:
         st.text(
             "Vous devez être connecté en tant qu'admin pour voir la liste des personnes")
 else:
-    st.text('Vous devez être connecté pour ajouter un livre')
+    st.text('Vous devez être connecté pour voir la liste des personnes')
