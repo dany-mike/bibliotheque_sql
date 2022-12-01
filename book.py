@@ -12,12 +12,12 @@ class Book:
 
     def getUnavailableBooks(self):
         self.db.cur.execute(
-            "SELECT * FROM livre LEFT JOIN categorie ON categorie.livre_isbn = livre.isbn WHERE quantite <= 0;")
+            "SELECT * FROM livre WHERE quantite <= 0;")
         return self.db.cur.fetchall()
 
     def getAvailableBooks(self):
         self.db.cur.execute(
-            "SELECT * FROM livre LEFT JOIN categorie ON categorie.livre_isbn = livre.isbn WHERE quantite > 0;")
+            "SELECT * FROM livre WHERE quantite > 0;")
         return self.db.cur.fetchall()
 
     def getBookByISBN(self, isbn):
@@ -27,23 +27,24 @@ class Book:
 
     def getBooksByAuthor(self, author):
         self.db.cur.execute(
-            "SELECT * FROM livre LEFT JOIN categorie ON categorie.livre_isbn = livre.isbn WHERE auteur = %s;", (author,))
+            "SELECT * FROM livre WHERE auteur = %s;", (author,))
         return self.db.cur.fetchall()
-    
+
     def getBooksByCategory(self, categorie_name):
         self.db.cur.execute(
-            "SELECT * FROM categorie LEFT JOIN livre ON livre.isbn = categorie.livre_isbn WHERE categorie_name = %s", (categorie_name, )
+            "SELECT * FROM categorie LEFT JOIN livre ON livre.isbn = categorie.livre_isbn WHERE categorie_name = %s", (
+                categorie_name, )
         )
         return self.db.cur.fetchall()
 
     def getBooksByName(self, bookName):
         self.db.cur.execute(
-            "SELECT * FROM livre LEFT JOIN categorie ON categorie.livre_isbn = livre.isbn WHERE titre = %s;", (bookName,))
+            "SELECT * FROM livre WHERE titre = %s;", (bookName,))
         return self.db.cur.fetchall()
 
     def getBooksByDate(self, date):
         self.db.cur.execute(
-            "SELECT * FROM livre LEFT JOIN categorie ON categorie.livre_isbn = livre.isbn WHERE date_publication = %s;", (date,))
+            "SELECT * FROM livre WHERE date_publication = %s;", (date,))
         return self.db.cur.fetchall()
 
     def getUnreturnedBooks(self, personne_id):
@@ -55,15 +56,20 @@ class Book:
         self.db.cur.execute(
             "SELECT * FROM emprunt LEFT JOIN livre ON emprunt.livre_isbn = livre.isbn LEFT JOIN personne ON emprunt.personne_id = personne.id WHERE date_rendu IS NOT NULL AND personne_id = %s;", (personne_id, ))
         return self.db.cur.fetchall()
-    
+
     def getUnlikedBooks(self, personne_id):
         self.db.cur.execute(
             "SELECT * from livre LEFT JOIN likes ON livre.isbn = likes.livre_isbn WHERE personne_id != %s OR personne_id IS NULL;", (personne_id, ))
         return self.db.cur.fetchall()
-    
+
     def getLikedBooks(self, personne_id):
         self.db.cur.execute(
-            "SELECT * from likes LEFT JOIN livre ON livre.isbn = likes.livre_isbn LEFT JOIN categorie ON categorie.livre_isbn = livre.isbn WHERE personne_id = %s;", (personne_id, ))
+            "SELECT * from likes LEFT JOIN livre ON livre.isbn = likes.livre_isbn WHERE personne_id = %s;", (personne_id, ))
+        return self.db.cur.fetchall()
+
+    def getCategories(self):
+        self.db.cur.execute(
+            "SELECT categorie_name, COUNT(categorie_name) from  categorie GROUP BY categorie_name HAVING COUNT(categorie) > 1;")
         return self.db.cur.fetchall()
 
     def updateBookQty(self, updated_qty, isbn):
@@ -73,7 +79,7 @@ class Book:
     def setBookReturnDate(self, date_rendu, emprunt_id):
         self.db.cur.execute(
             "UPDATE emprunt SET date_rendu = %s WHERE id = %s;", (date_rendu, emprunt_id))
-    
+
     def getBookByIDEmprunt(self, idEmprunt):
         self.db.cur.execute(
             "SELECT * from emprunt LEFT JOIN livre ON livre.isbn = emprunt.livre_isbn WHERE id = %s;", (idEmprunt, ))
@@ -88,10 +94,9 @@ class Book:
                 'Quantite': item[2],
                 'Auteur': item[3],
                 'Date de publication': item[4],
-                'Categorie': item[5]
             })
         return formattedList
-    
+
     def formatCategories(self, items):
         formattedList = []
         for item in items:
@@ -148,7 +153,7 @@ class Book:
         if len(unavailableBooks) > 0:
             st.subheader('Liste des livres non disponibles')
             st.write(pd.DataFrame(self.formatBooks(unavailableBooks)))
-    
+
     def renderLikedBooks(self, personne_id):
         likedBooks = self.getLikedBooks(personne_id)
         st.write(pd.DataFrame(self.formatLikedBooks(likedBooks)))
@@ -164,8 +169,11 @@ class Book:
             return authorName
 
     def renderSearchBarCategory(self):
-        categorieName = st.text_input('Chercher un livre par catégorie: ', '')
+        categories = self.getCategories()
+        categorieName = st.selectbox('Liste des catégories',
+                                      (self.renderCategoryLabel(categories)))
         if st.button('Chercher par catégorie'):
+            print('Seach by category')
             return categorieName
 
     def renderCalendarInput(self):
@@ -404,6 +412,12 @@ class Book:
                 "Titre: " + book["Titre"] + " ISBN: " + book["ISBN"])
         return borrowLabel
 
+    def renderCategoryLabel(self, categories):
+        categoryLabel = []
+        for category in categories:
+            categoryLabel.append(category[0])
+        return categoryLabel
+
     def renderUnreturnedLabel(self, books):
         unreturnedLabel = []
         for book in books:
@@ -415,7 +429,7 @@ class Book:
         unreturnedLabel = []
         for book in books:
             unreturnedLabel.append(
-                    "ISBN: " + book[0] + " Titre: " + book[1])
+                "ISBN: " + book[0] + " Titre: " + book[1])
         return unreturnedLabel
 
     def addBook(self, isbn, title, date_publication, quantity, auteur, categories):
@@ -454,16 +468,17 @@ class Book:
         with st.form("formulaire_des_livres_a_like"):
             unlikedBooks = self.getUnlikedBooks(personne_id)
             selectedBook = st.selectbox('Liste des livres à liker',
-                                     (self.renderUnlikedBookLabel(unlikedBooks)))
+                                        (self.renderUnlikedBookLabel(unlikedBooks)))
             livre_isbn = selectedBook.split(' ')[1]
             submitted = st.form_submit_button("Submit")
             if submitted:
                 self.likeBook(personne_id, livre_isbn)
-    
+
     def likeBook(self, personne_id, livre_isbn):
         try:
             livre = self.getBookByISBN(livre_isbn)
-            self.db.cur.execute("INSERT INTO likes (livre_isbn, personne_id) VALUES (%s, %s);", (livre_isbn, personne_id))
+            self.db.cur.execute(
+                "INSERT INTO likes (livre_isbn, personne_id) VALUES (%s, %s);", (livre_isbn, personne_id))
             self.db.conn.commit()
             st.text("Le livre " + livre[1] + " a été liké avec succès")
         except (Exception, psycopg2.DatabaseError) as error:

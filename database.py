@@ -54,6 +54,7 @@ class Database:
     def creer_compte_admin(self, nom: str, date_de_naissance: tuple[int, int, int]):
         try:
             self.register(nom, date_de_naissance, "admin")
+            st.write('Compte créé avec succès !')
         except (Exception, psycopg2.DatabaseError) as error:
             print(error)
             self.conn.rollback()
@@ -79,6 +80,7 @@ class Database:
         st.experimental_set_query_params(
             personne_id=personne_id
         )
+        st.text('Vous êtes connecté')
 
     def renderUser(self, personne_id):
         p = Personne(personne_id, self)
