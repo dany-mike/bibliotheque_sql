@@ -12,37 +12,37 @@ class Book:
 
     def getUnavailableBooks(self):
         self.db.cur.execute(
-            "SELECT * FROM livre  WHERE quantite <= 0;")
+            "SELECT * FROM livre WHERE quantite <= 0;")
         return self.db.cur.fetchall()
 
     def getAvailableBooks(self):
         self.db.cur.execute(
-            "SELECT * FROM livre  WHERE quantite > 0;")
+            "SELECT * FROM livre WHERE quantite > 0;")
         return self.db.cur.fetchall()
 
     def getBookByISBN(self, isbn):
         self.db.cur.execute(
-            "SELECT * FROM livre  WHERE isbn = %s;", (isbn,))
+            "SELECT * FROM livre WHERE isbn = %s;", (isbn,))
         return self.db.cur.fetchone()
 
     def getBooksByAuthor(self, author):
         self.db.cur.execute(
-            "SELECT * FROM livre  WHERE auteur = %s;", (author,))
+            "SELECT * FROM livre WHERE auteur = %s;", (author,))
         return self.db.cur.fetchall()
 
     def getBooksByName(self, bookName):
         self.db.cur.execute(
-            "SELECT * FROM livre  WHERE titre = %s;", (bookName,))
+            "SELECT * FROM livre WHERE titre = %s;", (bookName,))
         return self.db.cur.fetchall()
 
     def getBooksByDate(self, date):
         self.db.cur.execute(
-            "SELECT * FROM livre   WHERE date_publication = %s;", (date,))
+            "SELECT * FROM livre WHERE date_publication = %s;", (date,))
         return self.db.cur.fetchall()
 
     def getBooksByCategory(self, categorieName):
         self.db.cur.execute(
-            "SELECT * FROM livre  WHERE categorie_name = %s;", (categorieName,))
+            "SELECT * FROM livre WHERE categorie_name = %s;", (categorieName,))
         return self.db.cur.fetchall()
 
     def getUnreturnedBooks(self, personne_id):
@@ -72,6 +72,11 @@ class Book:
     def setBookReturnDate(self, date_rendu, emprunt_id):
         self.db.cur.execute(
             "UPDATE emprunt SET date_rendu = %s WHERE id = %s;", (date_rendu, emprunt_id))
+    
+    def getBookByIDEmprunt(self, idEmprunt):
+        self.db.cur.execute(
+            "SELECT * from emprunt LEFT JOIN livre ON livre.isbn = emprunt.livre_isbn WHERE id = %s;", (idEmprunt, ))
+        return self.db.cur.fetchone()
 
     def formatBooks(self, items):
         formattedList = []
@@ -337,16 +342,20 @@ class Book:
             p = Personne(personne_id, self.db)
             personne = p.getCurrentUser()
             emprunt_id = int(self.getLabelId(bookLabel))
-            isbn = bookLabel.split()[6]
+            book = self.getBookByIDEmprunt(emprunt_id)
             updated_limite = personne[2] + 1
-            updated_book_qty = self.getBookByISBN(isbn)[2] + 1
+            print(updated_limite)
+            updated_book_qty = self.getBookByISBN(book[1])[2] + 1
             self.setBookReturnDate(date_rendu, emprunt_id)
             p.updateUserLimite(updated_limite, personne_id)
-            self.updateBookQty(updated_book_qty, isbn)
+            self.updateBookQty(updated_book_qty, book[1])
             p.unblacklistUser()
             self.db.conn.commit()
+            st.text('Le livre ' + book[6] + ' a été rendu avec succès !')
         except (Exception, psycopg2.DatabaseError) as error:
             print(error)
+            st.text('Erreur lors du retour du livre')
+            st.text(error)
             self.db.conn.rollback()
 
     def borrowBooks(self, values, personne_id, booksToBorrow, isbnList):
