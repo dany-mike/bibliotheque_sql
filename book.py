@@ -262,7 +262,6 @@ class Book:
     def getBorrowsToInsert(self, isbnList, personneId, booksToBorrow, today):
         fields = []
         for i in range(booksToBorrow):
-            print(isbnList)
             fields.append([])
             fields[i].append(isbnList[i])
             fields[i].append(personneId)
@@ -275,7 +274,6 @@ class Book:
                 result += str(value) + ';'
             else:
                 result += str(value) + ', '
-        print(result)
         return result
 
     def getValuesBorrow(self, isbn, personne_id, today):
@@ -376,6 +374,13 @@ class Book:
                 "Titre: " + book["Titre du livre"] + " ISBN: " + book["ISBN du livre"] + " ID de l'emprunt: " + str(book["ID de l'emprunt"]))
         return unreturnedLabel
 
+    def renderUnlikedBookLabel(self, books):
+        unreturnedLabel = []
+        for book in books:
+            unreturnedLabel.append(
+                    "ISBN: " + book[0] + " Titre: " + book[1])
+        return unreturnedLabel
+
     def addBook(self, isbn, title, date_publication, quantity, auteur, categories):
         try:
             self.db.cur.execute("INSERT INTO livre (isbn, titre, quantite, auteur, date_publication) VALUES (%s, %s, %s, %s, %s)",
@@ -406,11 +411,24 @@ class Book:
                             (categorie_name, livre_isbn))
 
     def renderLikeForm(self, personne_id):
-        with st.form("formulaire_de_like"):
+        with st.form("formulaire_des_livres_a_like"):
             unlikedBooks = self.getUnlikedBooks(personne_id)
-            print(unlikedBooks)
-            # bookLabel = st.selectbox('Liste des livres non rendus',
-            #                          (self.renderUnreturnedLabel(unreturnedBooks)))
-            # submitted = st.form_submit_button("Submit")
-            # if submitted:
-            #     self.returnBook(bookLabel, personne_id, today)
+            selectedBook = st.selectbox('Liste des livres à liker',
+                                     (self.renderUnlikedBookLabel(unlikedBooks)))
+            livre_isbn = selectedBook.split(' ')[1]
+            submitted = st.form_submit_button("Submit")
+            if submitted:
+                st.text('Submitted')
+                self.likeBook(personne_id, livre_isbn)
+    
+    def likeBook(self, personne_id, livre_isbn):
+        try:
+            livre = self.getBookByISBN(livre_isbn)
+            self.db.cur.execute("INSERT INTO likes (livre_isbn, personne_id) VALUES (%s, %s);", (livre_isbn, personne_id))
+            self.db.conn.commit()
+            st.text("Le livre " + livre[1] + " a été liké avec succès")
+        except (Exception, psycopg2.DatabaseError) as error:
+            print(error)
+            st.text("Le like du livre " + livre[1] + " a échoué")
+            st.text(error)
+            self.db.conn.rollback()
